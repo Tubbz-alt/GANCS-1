@@ -65,7 +65,8 @@ def _summarize_progress(train_data, feature, label, gene_output,
         gene_param['gene_output'] = gene_output.tolist()
         # add input arguments
         # print(FLAGS.__dict__['__flags'])
-        gene_param['FLAGS'] = FLAGS.__dict__['__flags']
+        # gene_param['FLAGS'] = FLAGS.__dict__['__flags']
+        # gene_param['FLAGS'] = FLAGS.__flags
 
         # save json
         filename = 'batch%06d_%s.json' % (batch, suffix)
@@ -205,7 +206,7 @@ def train_model(train_data, num_sample_train=1984, num_sample_test=116):
                 
                 # get timing
                 forward_passing_time = time.time()
-                gene_output, gene_layers, disc_layers, disc_output= td.sess.run(ops, feed_dict=feed_dict)       
+                gene_output, gene_layers, disc_layers, disc_output, disc_gradients = td.sess.run(ops, feed_dict=feed_dict)       
                 inference_time = time.time() - forward_passing_time
 
                 # output shapes

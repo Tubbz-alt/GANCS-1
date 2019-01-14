@@ -1,2 +1,10 @@
 
 .DS_Store
+
+*.pyc
+*.jpg
+*.png
+*.mat
+*.h5
+.vscode/
+train/
