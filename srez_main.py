@@ -65,7 +65,7 @@ python3 srez_main.py  --run train \
 
 
 """
-#import srez_demo
+import srez_demo
 import srez_input
 import srez_model
 import srez_train
@@ -265,7 +265,7 @@ def get_filenames(dir_file='', shuffle_filename=False):
 
 
 
-def setup_tensorflow(gpu_memory_fraction=0.4):
+def setup_tensorflow(gpu_memory_fraction=0.9):
     # Create session
     config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
     config.gpu_options.per_process_gpu_memory_fraction = min(gpu_memory_fraction, FLAGS.gpu_memory_fraction)
@@ -313,6 +313,64 @@ def _demo():
 
     # Execute demo
     srez_demo.demo1(sess)
+
+
+def _demo2():
+    # Load checkpoint
+    if not tf.gfile.IsDirectory(FLAGS.checkpoint_dir):
+        raise FileNotFoundError("Could not find folder '{}'".format(FLAGS.checkpoint_dir))
+
+    # Setup global tensorflow state
+    sess, summary_writer = setup_tensorflow()
+
+    # data directories
+    test_filenames_input = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
+    test_filenames_output = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
+
+    # image_size
+    if FLAGS.sample_size_y>0:
+        image_size = [FLAGS.sample_size, FLAGS.sample_size_y]
+    else:
+        image_size = [FLAGS.sample_size, FLAGS.sample_size]
+
+    # get undersample mask
+    from scipy import io as sio
+    try:
+        content_mask = sio.loadmat(FLAGS.sampling_pattern)
+        key_mask = [x for x in content_mask.keys() if not x.startswith('_')]
+        mask = content_mask[key_mask[0]]
+    except:
+        mask = None
+
+    # Setup async input queues
+    features, labels, masks = srez_input.setup_inputs_one_sources(
+        sess, test_filenames_input, test_filenames_output,
+        image_size=image_size, 
+        # undersampling
+        axis_undersample=FLAGS.axis_undersample, 
+        r_factor=FLAGS.R_factor,
+        r_alpha=FLAGS.R_alpha,
+        r_seed=FLAGS.R_seed,
+        sampling_mask=mask
+        )
+
+    # Create and initialize model
+    [gene_minput, gene_moutput, gene_moutput_complex, gene_output,
+     gene_output_complex, gene_var_list, gene_layers, gene_mlayers, 
+     disc_real_output, disc_fake_output, disc_moutput, 
+     disc_var_list, disc_layers, disc_mlayers] = \
+            srez_model.create_model(sess, features, labels, masks)
+
+    # Restore variables from checkpoint
+    saver = tf.train.Saver()
+    filename = 'checkpoint_new.txt'
+    filename = os.path.join(FLAGS.checkpoint_dir, filename)
+    saver.restore(sess, filename)
+
+    # Execute demo
+    test_data = TrainData(locals())
+    srez_demo.demo2(test_data, 1 * FLAGS.batch_size)
+
 
 class TrainData(object):
     def __init__(self, dictionary):
@@ -489,7 +547,7 @@ def main(argv=None):
     # Training or showing off?
 
     if FLAGS.run == 'demo':
-        _demo()
+        _demo2()
     elif FLAGS.run == 'train':
         _train()
 
