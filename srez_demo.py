@@ -55,7 +55,7 @@ def demo2(data, num_sample):
         # ops = [d.gene_loss, d.gene_ls_loss, d.gene_dc_loss, d.disc_real_loss, d.disc_fake_loss, d.list_gene_losses]            
         forward_passing_time = time.time()
         # gene_output, gene_layers, disc_layers, disc_output, disc_gradients = d.sess.run(ops, feed_dict=feed_dict)
-        gene_output = d.sess.run(ops, feed_dict=feed_dict)
+        gene_output, = d.sess.run(ops, feed_dict=feed_dict)
         # gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = d.sess.run(ops, feed_dict=feed_dict)   
         inference_time = time.time() - forward_passing_time
 
@@ -81,7 +81,7 @@ def save_image_output(data, feature, label, gene_output,
     mag_zpad = tf.reshape(mag_zpad, [FLAGS.batch_size,size[0],size[1],1])
     mag_zpad = tf.concat(axis=3, values=[mag_zpad, mag_zpad])
     
-    # output magnitude
+    # output magnitude 
     mag_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
 
     # concat axis for magnitnude image
