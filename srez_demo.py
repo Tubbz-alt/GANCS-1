@@ -1,3 +1,4 @@
+from srez_model import loss_DSSIS_tf11
 # import moviepy.editor as mpe
 import numpy as np
 import numpy.random
@@ -5,6 +6,7 @@ import os.path
 import scipy.misc
 import tensorflow as tf
 import time
+
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -58,11 +60,21 @@ def demo2(data, num_sample):
         gene_output, = d.sess.run(ops, feed_dict=feed_dict)
         # gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = d.sess.run(ops, feed_dict=feed_dict)   
         inference_time = time.time() - forward_passing_time
-
         print('Batch forward pass took {}s'.format(inference_time))
 
+        l1_error = tf.reduce_mean(tf.abs(gene_output - label))
+        l2_error  = tf.reduce_mean(tf.square(gene_output - label))
+        ssim = loss_DSSIS_tf11(label, gene_output)
+        l1_error, l2_error, ssim = d.sess.run([l1_error, l2_error, ssim])
+        print('L1 error: {}'.format(l1_error))
+        print('L2 error: {}'.format(l2_error))
+        print('SSIM: {}'.format(ssim))
+
+        print('Saving comparison figure')
         save_image_output(d, feature, label, gene_output, 
             index_batch, 'test{}'.format(index_batch), batch_size)
+
+        print('Demo complete.')
 
 
 def save_image_output(data, feature, label, gene_output, 
