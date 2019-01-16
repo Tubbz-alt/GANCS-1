@@ -146,10 +146,12 @@ def train_model(train_data, num_sample_train=1984, num_sample_test=116):
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
 
         #first train based on MSE and then GAN
-        if batch < 2e3+1:
-           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 1}
-        else:
-           feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (1/np.sqrt(batch+6-2e3)) + 0.75}
+        # if batch < 2e3+1:
+        #    feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 1}
+        # else:
+        #    feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (1/np.sqrt(batch+6-2e3)) + 0.75}
+
+        feed_dict = {td.learning_rate : lrval, td.gene_mse_factor: FLAGS.gene_mse_factor}
 
 
         #feed_dict = {td.learning_rate : lrval}
