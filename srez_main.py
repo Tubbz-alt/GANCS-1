@@ -369,7 +369,7 @@ def _demo2():
 
     # Execute demo
     test_data = TrainData(locals())
-    num_sample = FLAGS.sample_train if FLAGS.sample_train > 0 else FLAGS.batch_size
+    num_sample = FLAGS.sample_test if FLAGS.sample_test > 0 else FLAGS.batch_size
     srez_demo.demo2(test_data, num_sample)
 
 
