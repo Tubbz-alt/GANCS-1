@@ -985,10 +985,10 @@ def keras_mean(x, axis=None, keepdims=False):
 def loss_DSSIS_tf11(y_true, y_pred, patch_size=5, batch_size=-1):
     # get batch size
     if batch_size<0:
-        batch_size = int(y_true.get_shape()[0])
+        batch_size = int(y_true.shape[0])
     else:
-        y_true = tf.reshape(y_true, [batch_size] + get_shape(y_pred)[1:])
-        y_pred = tf.reshape(y_pred, [batch_size] + get_shape(y_pred)[1:])
+        y_true = tf.reshape(y_true, [batch_size] + y_pred.shape[1:])
+        y_pred = tf.reshape(y_pred, [batch_size] + y_pred.shape[1:])
     # batch, x, y, channel
     # y_true = tf.transpose(y_true, [0, 2, 3, 1])
     # y_pred = tf.transpose(y_pred, [0, 2, 3, 1])
