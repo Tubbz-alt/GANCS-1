@@ -185,8 +185,8 @@ tf.app.flags.DEFINE_integer('train_time', 20,
 tf.app.flags.DEFINE_integer('num_epoch', 20,
                             "Number of epochs to train the model")
 
-tf.app.flags.DEFINE_integer('fixed_epochs', True,
-                            "Whether to end training based on `num_epoch`, else `train_time`")
+tf.app.flags.DEFINE_bool('fixed_epochs', True,
+                         "Whether to end training based on `num_epoch`, else `train_time`")
 
 tf.app.flags.DEFINE_integer('axis_undersample', 1,
                             "which axis to undersample")
