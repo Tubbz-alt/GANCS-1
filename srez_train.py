@@ -15,58 +15,58 @@ def _summarize_progress(train_data, feature, label, gene_output,
     
     td = train_data
 
-    size = [label.shape[1], label.shape[2]]
+    # size = [label.shape[1], label.shape[2]]
 
-    # complex input zpad into r and channel
-    complex_zpad = tf.image.resize_nearest_neighbor(feature, size)
-    complex_zpad = tf.maximum(tf.minimum(complex_zpad, 1.0), 0.0)
+    # # complex input zpad into r and channel
+    # complex_zpad = tf.image.resize_nearest_neighbor(feature, size)
+    # complex_zpad = tf.maximum(tf.minimum(complex_zpad, 1.0), 0.0)
 
-    # zpad magnitude
-    mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2+complex_zpad[:,:,:,1]**2)
-    mag_zpad = tf.maximum(tf.minimum(mag_zpad, 1.0), 0.0)
-    mag_zpad = tf.reshape(mag_zpad, [FLAGS.batch_size,size[0],size[1],1])
-    mag_zpad = tf.concat(axis=3, values=[mag_zpad, mag_zpad])
+    # # zpad magnitude
+    # mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2+complex_zpad[:,:,:,1]**2)
+    # mag_zpad = tf.maximum(tf.minimum(mag_zpad, 1.0), 0.0)
+    # mag_zpad = tf.reshape(mag_zpad, [FLAGS.batch_size,size[0],size[1],1])
+    # mag_zpad = tf.concat(axis=3, values=[mag_zpad, mag_zpad])
     
-    # output magnitude
-    mag_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
+    # # output magnitude
+    # mag_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
 
-    # concat axis for magnitnude image
-    mag_output = tf.concat(axis=3, values=[mag_output, mag_output])
-    mag_gt = tf.concat(axis=3, values=[label, label])
+    # # concat axis for magnitnude image
+    # mag_output = tf.concat(axis=3, values=[mag_output, mag_output])
+    # mag_gt = tf.concat(axis=3, values=[label, label])
 
-    # concate for visualize image
-    image   = tf.concat(axis=2, values=[complex_zpad, mag_zpad, mag_output, mag_gt])
-    image = image[0:max_samples,:,:,:]
-    image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
-    image = td.sess.run(image)
-    print('save to image size {0} type {1}', image.shape, type(image))
+    # # concate for visualize image
+    # image   = tf.concat(axis=2, values=[complex_zpad, mag_zpad, mag_output, mag_gt])
+    # image = image[0:max_samples,:,:,:]
+    # image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
+    # image = td.sess.run(image)
+    # print('save to image size {0} type {1}', image.shape, type(image))
     
-    # 3rd channel for visualization
-    mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
-    image = np.concatenate((image, mag_3rd[:,:,np.newaxis]),axis=2)
+    # # 3rd channel for visualization
+    # mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
+    # image = np.concatenate((image, mag_3rd[:,:,np.newaxis]),axis=2)
 
-    # save to image file
-    print('save to image,', image.shape)
-    filename = 'batch%06d_%s.png' % (batch, suffix)
-    filename = os.path.join(FLAGS.train_dir, filename)
-    scipy.misc.toimage(image, cmin=0., cmax=1.).save(filename)
-    print("    Saved %s" % (filename,))
+    # # save to image file
+    # print('save to image,', image.shape)
+    # filename = 'batch%06d_%s.png' % (batch, suffix)
+    # filename = os.path.join(FLAGS.train_dir, filename)
+    # scipy.misc.toimage(image, cmin=0., cmax=1.).save(filename)
+    # print("    Saved %s" % (filename,))
 
 
 
     #gene_output_abs = np.abs(gene_output)
     # save layers and var_list
     if gene_param is not None:
-        #add feature 
-        print('dimension for input, ref, output:',
-              feature.shape, label.shape, gene_output.shape)
-        gene_param['feature'] = feature.tolist()
-        gene_param['label'] = label.tolist()
-        gene_param['gene_output'] = gene_output.tolist()
-        # add input arguments
-        # print(FLAGS.__dict__['__flags'])
-        # gene_param['FLAGS'] = FLAGS.__dict__['__flags']
-        # gene_param['FLAGS'] = FLAGS.__flags
+    #     #add feature 
+    #     print('dimension for input, ref, output:',
+    #           feature.shape, label.shape, gene_output.shape)
+    #     gene_param['feature'] = feature.tolist()
+    #     gene_param['label'] = label.tolist()
+    #     gene_param['gene_output'] = gene_output.tolist()
+    #     # add input arguments
+    #     # print(FLAGS.__dict__['__flags'])
+    #     # gene_param['FLAGS'] = FLAGS.__dict__['__flags']
+    #     gene_param['FLAGS'] = FLAGS.__flags
 
         # save json
         filename = 'batch%06d_%s.json' % (batch, suffix)
@@ -174,12 +174,12 @@ def train_model(train_data, num_sample_train, num_sample_test):
         if batch % 10 == 0:
             # Show we are alive
             elapsed = int(time.time() - start_time)/60
-            err_log = 'Progress[{0:3f}%], ETA[{1:4f}m], Batch [{2:4f}], G_Loss[{3}], G_mse_Loss[{4:3.3f}], G_LS_Loss[{5:3.3f}], D_Real_Loss[{6:3.3f}], D_Fake_Loss[{7:3.3f}]'.format(
+            err_log = 'Progress[{0:3f}%], ETA[{1:4f}m], Batch [{2:4f}], G_Loss[{3:3.3f}], G_mse_Loss[{4:3.3f}], G_LS_Loss[{5:3.3f}], D_Real_Loss[{6:3.3f}], D_Fake_Loss[{7:3.3f}]'.format(
                     int(100*elapsed/FLAGS.train_time), FLAGS.train_time - elapsed, batch, 
                     gene_loss, gene_mse_loss, gene_ls_loss, disc_real_loss, disc_fake_loss)
             print(err_log)
             # update err loss
-            err_loss = [int(batch), float(gene_loss), float(gene_dc_loss), 
+            err_loss = [int(batch), float(gene_loss), float(gene_mse_loss), 
                         float(gene_ls_loss), float(disc_real_loss), float(disc_fake_loss)]
             accumuated_err_loss.append(err_loss)
             # Finished?
@@ -204,40 +204,54 @@ def train_model(train_data, num_sample_train, num_sample_test):
                 test_label = list_test_labels[index_batch_test]
             
                 # Show progress with test features
-                feed_dict = {td.gene_minput: test_feature}
+                feed_dict = {td.gene_minput: test_feature, td.gene_mse_factor: FLAGS.gene_mse_factor}
                 # not export var
                 # ops = [td.gene_moutput, td.gene_mlayers, td.gene_var_list, td.disc_var_list, td.disc_layers]
                 # gene_output, gene_layers, gene_var_list, disc_var_list, disc_layers= td.sess.run(ops, feed_dict=feed_dict)       
                 
-                ops = [td.gene_moutput, td.gene_mlayers, td.disc_mlayers, td.disc_moutput, td.disc_gradients]
-                
+                # ops = [td.gene_moutput, td.gene_mlayers, td.disc_mlayers, td.disc_moutput, td.disc_gradients]
+                ops = [td.gene_moutput, td.disc_moutput, td.disc_real_loss, td.disc_fake_loss, td.list_gene_losses]                   
+
                 # get timing
                 forward_passing_time = time.time()
-                gene_output, gene_layers, disc_layers, disc_output, disc_gradients = td.sess.run(ops, feed_dict=feed_dict)       
+                # gene_output, gene_layers, disc_layers, disc_output, disc_gradients = td.sess.run(ops, feed_dict=feed_dict)
+                gene_output, disc_output, disc_real_loss, disc_fake_loss, list_gene_losses = td.sess.run(ops, feed_dict=feed_dict) 
                 inference_time = time.time() - forward_passing_time
 
+                [gene_mixmse_loss, gene_mse_loss, \
+                 gene_l2_loss, gene_l1_loss, \
+                 gene_ssim_loss, gene_dc_loss, \
+                 gene_fool_loss, gene_non_mse_l2, gene_loss] = list_gene_losses
+                validate_log = 'Validation: Batch [{:4f}], Inference_Time[{:3.4f}], G_Loss[{:3.3f}], G_mse_Loss[{:3.3f}], G_LS_Loss[{:3.3f}], D_Real_Loss[{:3.3f}], D_Fake_Loss[{:3.3f}]'.format(
+                    batch, inference_time, gene_loss, gene_mse_loss, gene_ls_loss, disc_real_loss, disc_fake_loss)
+                validate_loss = [int(batch), float(gene_loss), float(gene_mse_loss), 
+                                 float(gene_ls_loss), float(disc_real_loss), float(disc_fake_loss)]
+
                 # output shapes
-                print('disc loss gradients:', [x.shape for x in disc_gradients])
-                # print('gene_var_list',[x.shape for x in gene_var_list])
-                print('gene_layers',[x.shape for x in gene_layers])
-                # print('disc_var_list',[x.shape for x in disc_var_list])
-                print('disc_layers',[x.shape for x in disc_layers])
+                # print('disc loss gradients:', [x.shape for x in disc_gradients])
+                # # print('gene_var_list',[x.shape for x in gene_var_list])
+                # print('gene_layers',[x.shape for x in gene_layers])
+                # # print('disc_var_list',[x.shape for x in disc_var_list])
+                # print('disc_layers',[x.shape for x in disc_layers])
 
                 # save record
                 # update 1217 add gradients
                 gene_param = {'train_log':err_log,
                               'train_loss':accumuated_err_loss,
-                              'gene_loss':list_gene_losses,
+                              'validate_log':validate_log,
+                              'validate_loss':validate_loss,
                               'inference_time':inference_time,
-                              'gene_layers':[x.tolist() for x in gene_layers if x.shape[-1]<10], 
-                              'disc_layers':[x.tolist() for x in disc_layers],
-                              'disc_gradients':[x.tolist() for x in disc_gradients]}                
+                            #   'gene_layers':[x.tolist() for x in gene_layers if x.shape[-1]<10], 
+                            #   'disc_layers':[x.tolist() for x in disc_layers],
+                            #   'disc_gradients':[x.tolist() for x in disc_gradients],
+                }                
 
-                # gene layers are too large
-                if index_batch_test>0:
-                    gene_param['gene_layers']=[]
+                # # gene layers are too large
+                # if index_batch_test>0:
+                #     gene_param['gene_layers']=[]
+                #     gene_param['disc_layers']=[]
                 _summarize_progress(td, test_feature, test_label, gene_output, batch, 
-                                    'test{0}'.format(index_batch_test),                                     
+                                    'validate{0}'.format(index_batch_test),                                     
                                     max_samples = batch_size,
                                     gene_param = gene_param)
                 # try to reduce mem
@@ -257,7 +271,7 @@ def train_model(train_data, num_sample_train, num_sample_test):
 
         
         # export check points
-        if batch % FLAGS.checkpoint_period == 0:
+        if FLAGS.checkpoint_period > 0 and batch % FLAGS.checkpoint_period == 0:
             # Save checkpoint
             _save_checkpoint(td, batch)
 
