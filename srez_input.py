@@ -90,7 +90,8 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     filename_queue_input = tf.train.string_input_producer(filenames_input, shuffle=False)
     key, value_input = reader_input.read(filename_queue_input)
     channels = 3
-    image_input = tf.image.decode_jpeg(value_input, channels=channels, name="input_image")
+    image_input = tf.image.decode_png(value_input, channels=channels, name="input_image")
+    # image_input = tf.image.decode_jpeg(value_input, channels=channels, name="input_image")
     image_input.set_shape([256, 256, channels])
 
     print('size_input_image', image_input.get_shape())
@@ -100,7 +101,8 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
 
 
     # cast image to float in 0~1
-    image_input = tf.cast(image_input, tf.float32)/255.0
+    # image_input = tf.cast(image_input, tf.float32)/255.0
+    image_input = tf.cast(image_input, tf.float32)/65535.0
 
     # use the last channel (B) for input and output, assume image is in gray-scale
     image_output = image_input[:,:,-1]

@@ -95,7 +95,7 @@ tf.app.flags.DEFINE_string('checkpoint_dir', 'checkpoint',
                            "Output folder where checkpoints are dumped.")
 
 tf.app.flags.DEFINE_integer('checkpoint_period', 10000,
-                            "Number of batches in between checkpoints")
+                            "Number of batches in between checkpoints. If non-positive, only checkpoints at the end of training")
 
 tf.app.flags.DEFINE_string('dataset', '',
                            "Path to the train dataset directory.")
@@ -266,7 +266,8 @@ def get_filenames(dir_file='', shuffle_filename=False):
         random.shuffle(filenames)
     else:
         filenames = sorted(filenames)
-    filenames = [os.path.join(dir_file, f) for f in filenames if f.endswith('.jpg')]
+    # filenames = [os.path.join(dir_file, f) for f in filenames if f.endswith('.jpg')]
+    filenames = [os.path.join(dir_file, f) for f in filenames if f.endswith('.png')]
     return filenames
 
 
