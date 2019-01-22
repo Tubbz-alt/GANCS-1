@@ -105,7 +105,7 @@ def _save_checkpoint(train_data, batch):
 
     print("Checkpoint saved")
 
-def train_model(train_data, num_sample_train=1984, num_sample_test=116):
+def train_model(train_data, num_sample_train, num_sample_test):
     td = train_data
 
     # update merge_all_summaries() to tf.summary.merge_all
@@ -124,7 +124,8 @@ def train_model(train_data, num_sample_train=1984, num_sample_test=116):
     # batch info    
     batch_size = FLAGS.batch_size
     num_batch_train = num_sample_train / batch_size
-    num_batch_test = num_sample_test / batch_size            
+    num_batch_test = num_sample_test / batch_size
+    total_batch = FLAGS.num_epoch * num_batch_train
 
     # learning rate
     assert FLAGS.learning_rate_half_life % 10 == 0
@@ -164,7 +165,7 @@ def train_model(train_data, num_sample_train=1984, num_sample_test=116):
         # _, _, gene_loss, disc_real_loss, disc_fake_loss, train_feature, train_label, train_output = td.sess.run(ops, feed_dict=feed_dict)
         ops = [td.gene_minimize, td.disc_minimize, td.gene_loss, td.gene_ls_loss, td.gene_dc_loss, td.disc_real_loss, td.disc_fake_loss, td.list_gene_losses]                   
         _, _, gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = td.sess.run(ops, feed_dict=feed_dict)
-        
+
         # get all losses
         list_gene_losses = [float(x) for x in list_gene_losses]
         gene_mse_loss = list_gene_losses[1]   
@@ -181,10 +182,14 @@ def train_model(train_data, num_sample_train=1984, num_sample_test=116):
             err_loss = [int(batch), float(gene_loss), float(gene_dc_loss), 
                         float(gene_ls_loss), float(disc_real_loss), float(disc_fake_loss)]
             accumuated_err_loss.append(err_loss)
-            # Finished?            
-            current_progress = elapsed / FLAGS.train_time
-            if (current_progress >= 1.0) or (batch > FLAGS.train_time*200):
-                done = True
+            # Finished?
+            if FLAGS.fixed_epochs:
+                if batch > total_batch:
+                    done = True
+            else:       
+                current_progress = elapsed / FLAGS.train_time
+                if (current_progress >= 1.0):
+                    done = True
             
             # Update learning rate
             if batch % FLAGS.learning_rate_half_life == 0:
