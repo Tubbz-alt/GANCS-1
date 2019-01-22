@@ -169,11 +169,11 @@ def train_model(train_data, num_sample_train, num_sample_test):
         # get all losses
         list_gene_losses = [float(x) for x in list_gene_losses]
         gene_mse_loss = list_gene_losses[1]   
+        elapsed = int(time.time() - start_time)/60
 
         # verbose training progress
-        if batch % 10 == 0:
+        if batch % 10 == 0 or (FLAGS.fixed_epochs and batch >= total_batch) or (not FLAGS.fixed_epochs and elapsed >= FLAGS.train_time):
             # Show we are alive
-            elapsed = int(time.time() - start_time)/60
 
             if FLAGS.fixed_epochs:
                 progress = int(100 * batch / total_batch)
@@ -190,14 +190,6 @@ def train_model(train_data, num_sample_train, num_sample_test):
             err_loss = [int(batch), float(gene_loss), float(gene_mse_loss), 
                         float(gene_ls_loss), float(disc_real_loss), float(disc_fake_loss)]
             accumuated_err_loss.append(err_loss)
-            # Finished?
-            if FLAGS.fixed_epochs:
-                if batch > total_batch:
-                    done = True
-            else:       
-                current_progress = elapsed / FLAGS.train_time
-                if (current_progress >= 1.0):
-                    done = True
             
             # Update learning rate
             if batch % FLAGS.learning_rate_half_life == 0:
@@ -277,11 +269,18 @@ def train_model(train_data, num_sample_train, num_sample_test):
             print('train sample size:',train_feature.shape, train_label.shape, train_output.shape)
             _summarize_progress(td, train_feature, train_label, train_output, batch%num_batch_train, 'train')
 
-        
         # export check points
         if FLAGS.checkpoint_period > 0 and batch % FLAGS.checkpoint_period == 0:
             # Save checkpoint
             _save_checkpoint(td, batch)
+
+        # Finished?
+        if FLAGS.fixed_epochs:
+            if batch >= total_batch:
+                done = True
+        else:       
+            if elapsed >= FLAGS.train_time:
+                done = True
 
     _save_checkpoint(td, batch)
     print('Finished training!')
