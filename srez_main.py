@@ -170,10 +170,10 @@ tf.app.flags.DEFINE_integer('sample_test', -1,
 tf.app.flags.DEFINE_integer('sample_train', -1,
                             "Number of features to use for train. default value is -1 for use all samples except testing samples")
 
-tf.app.flags.DEFINE_integer('subsample_test', 8,
+tf.app.flags.DEFINE_integer('subsample_test', -1,
                             "Number of test sample to uniform sample. default value is -1 for using all test samples")
 
-tf.app.flags.DEFINE_integer('subsample_train', 1000,
+tf.app.flags.DEFINE_integer('subsample_train', -1,
                             "Number of train sample to uniform sample. default value is -1 for using all train samples")
                             
 tf.app.flags.DEFINE_string('train_dir', 'train',
@@ -181,6 +181,12 @@ tf.app.flags.DEFINE_string('train_dir', 'train',
 
 tf.app.flags.DEFINE_integer('train_time', 20,
                             "Time in minutes to train the model")
+
+tf.app.flags.DEFINE_integer('num_epoch', 20,
+                            "Number of epochs to train the model")
+
+tf.app.flags.DEFINE_integer('fixed_epochs', True,
+                            "Whether to end training based on `num_epoch`, else `train_time`")
 
 tf.app.flags.DEFINE_integer('axis_undersample', 1,
                             "which axis to undersample")
