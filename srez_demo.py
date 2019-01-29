@@ -85,32 +85,33 @@ def save_image_output(data, feature, label, gene_output,
     size = [label.shape[1], label.shape[2]]
 
     # complex input zpad into r and channel
-    complex_zpad = tf.image.resize_nearest_neighbor(feature, size)
-    complex_zpad = tf.maximum(tf.minimum(complex_zpad, 1.0), 0.0)
+    # complex_zpad = tf.image.resize_nearest_neighbor(feature, size)
+    # complex_zpad = tf.maximum(tf.minimum(complex_zpad, 1.0), 0.0)
 
     # zpad magnitude
-    mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2+complex_zpad[:,:,:,1]**2)
-    mag_zpad = tf.maximum(tf.minimum(mag_zpad, 1.0), 0.0)
-    mag_zpad = tf.reshape(mag_zpad, [FLAGS.batch_size,size[0],size[1],1])
-    mag_zpad = tf.concat(axis=3, values=[mag_zpad, mag_zpad])
+    mag_zpad = tf.maximum(tf.minimum(tf.abs(feature), 1.0), 0.0)
+    # mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2+complex_zpad[:,:,:,1]**2)
+    # mag_zpad = tf.maximum(tf.minimum(mag_zpad, 1.0), 0.0)
+    # mag_zpad = tf.reshape(mag_zpad, [FLAGS.batch_size,size[0],size[1],1])
+    # mag_zpad = tf.concat(axis=3, values=[mag_zpad, mag_zpad])
     
     # output magnitude 
     mag_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
 
     # concat axis for magnitnude image
-    mag_output = tf.concat(axis=3, values=[mag_output, mag_output])
-    mag_gt = tf.concat(axis=3, values=[label, label])
+    # mag_output = tf.concat(axis=3, values=[mag_output, mag_output])
+    mag_gt = label # tf.concat(axis=3, values=[label, label])
 
     # concate for visualize image
-    image   = tf.concat(axis=2, values=[complex_zpad, mag_zpad, mag_output, mag_gt])
+    image = tf.concat(axis=2, values=[mag_zpad, mag_output, mag_gt])
     image = image[0:max_samples,:,:,:]
     image = tf.concat(axis=0, values=[image[i,:,:,:] for i in range(int(max_samples))])
     image = d.sess.run(image)
     print('Save to image size {} type {}', image.shape, type(image))
 
     # 3rd channel for visualization
-    mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
-    image = np.concatenate((image, mag_3rd[:,:,np.newaxis]),axis=2)
+    # mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
+    # image = np.concatenate((image, mag_3rd[:,:,np.newaxis]),axis=2)
 
     # Save to image file
     print('Save to image,', image.shape)
@@ -121,7 +122,7 @@ def save_image_output(data, feature, label, gene_output,
     with open(filename, 'wb') as f:
         image *= 65535
         z = (image).astype(np.uint16)
-        writer = png.Writer(width=z.shape[1], height=z.shape[0], bitdepth=16)
+        writer = png.Writer(width=z.shape[1], height=z.shape[0], bitdepth=16, greyscale=True)
         zlist = z.tolist()
         writer.write(f, zlist)
 
