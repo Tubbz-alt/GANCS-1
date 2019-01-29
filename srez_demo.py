@@ -6,6 +6,7 @@ import os.path
 import scipy.misc
 import tensorflow as tf
 import time
+import png
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -115,5 +116,13 @@ def save_image_output(data, feature, label, gene_output,
     print('Save to image,', image.shape)
     filename = 'batch%06d_%s.png' % (batch, suffix)
     filename = os.path.join(FLAGS.train_dir, filename)
-    scipy.misc.toimage(image, cmin=0., cmax=1.).save(filename)
+
+    # scipy.misc.toimage(image, cmin=0., cmax=1.).save(filename)
+    with open(filename, 'wb') as f:
+        image *= 65535
+        z = (image).astype(np.uint16)
+        writer = png.Writer(width=z.shape[1], height=z.shape[0], bitdepth=16)
+        zlist = z.tolist()
+        writer.write(f, zlist)
+
     print("    Saved %s" % (filename,))
