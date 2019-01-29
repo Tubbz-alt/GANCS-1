@@ -446,10 +446,13 @@ def _train():
     #print('filenames_input[:20]',filenames_input[:20])
 
     # Separate training and test sets (SEPARATE FOLDERS)
-    train_filenames_input = filenames_input_train[:FLAGS.sample_train]    
-    train_filenames_output = filenames_output_train[:FLAGS.sample_train]            
-    test_filenames_input  = filenames_input_test[:FLAGS.sample_test]
-    test_filenames_output  = filenames_output_test[:FLAGS.sample_test]
+    sample_train = len(filenames_input_train) if FLAGS.sample_train <=0 else FLAGS.sample_train
+    train_filenames_input = filenames_input_train[:sample_train]    
+    train_filenames_output = filenames_output_train[:sample_train]
+
+    sample_test = len(filenames_input_test) if FLAGS.sample_test <= 0 else FLAGS.sample_test      
+    test_filenames_input  = filenames_input_test[:sample_test]
+    test_filenames_output  = filenames_output_test[:sample_test]
     #print('test_filenames_input', test_filenames_input)
     #print('train_filenames_input', train_filenames_input)
 
@@ -546,6 +549,8 @@ def _train():
     (global_step, learning_rate, gene_minimize, disc_minimize) = \
             srez_model.create_optimizers(gene_loss, gene_var_list,
                                          disc_loss, disc_var_list)
+
+    summary_writer = tf.summary.FileWriter(FLAGS.train_dir, sess.graph)
 
     # Train model
     train_data = TrainData(locals())
