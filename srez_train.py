@@ -253,7 +253,8 @@ def train_model(train_data, num_sample_train, num_sample_test):
                 gene_output = None
                 gene_layers = None
                 disc_layers = None
-                accumuated_err_loss = []
+                
+            accumuated_err_loss = []
 
         # export train batches
         if OUTPUT_TRAIN_SAMPLES and (batch % FLAGS.summary_train_period == 0):
