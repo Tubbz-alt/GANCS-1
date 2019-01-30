@@ -101,8 +101,8 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
 
 
     # cast image to float in 0~1
-    # image_input = tf.cast(image_input, tf.float32)/255.0
-    image_input = tf.cast(image_input, tf.float32)/65535.0
+    image_input = tf.cast(image_input, tf.float32)/255.0
+    # image_input = tf.cast(image_input, tf.float32)/65535.0  # TODO
 
     # use the last channel (B) for input and output, assume image is in gray-scale
     image_output = image_input[:,:,-1]
