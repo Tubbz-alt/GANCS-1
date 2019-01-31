@@ -79,13 +79,14 @@ import tensorflow as tf
 import shutil, os, errno # utils handling file manipulation
 
 from scipy import io as sio #.mat I/O
+import json
 
 FLAGS = tf.app.flags.FLAGS
 
 # Configuration (alphabetically)
 
 
-tf.app.flags.DEFINE_integer('number_of_copies', 3,
+tf.app.flags.DEFINE_integer('number_of_copies', 1,
                             "Number of repeatitions for the generator network.")
 
 tf.app.flags.DEFINE_integer('batch_size', 16,
@@ -557,6 +558,16 @@ def _train():
     srez_train.train_model(train_data, num_sample_train, num_sample_test)
 
 def main(argv=None):
+
+    # Record parameters
+    parameters = {}
+    parameters['FLAGS'] = {name:flag.value for name, flag in FLAGS.__flags.items()}
+    filename = 'parameters.json'
+    filename = os.path.join(FLAGS.train_dir, filename)
+    with open(filename, 'w') as outfile:
+        json.dump(parameters, outfile, indent=4)
+    print("Saved {}".format(filename))
+
     # Training or showing off?
 
     if FLAGS.run == 'demo':
