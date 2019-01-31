@@ -80,6 +80,7 @@ import shutil, os, errno # utils handling file manipulation
 
 from scipy import io as sio #.mat I/O
 import json
+import time
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -559,9 +560,13 @@ def _train():
 
 def main(argv=None):
 
+    time_start = time.strftime("%Y-%m-%d-%H-%M-%S")
+    print("START. Time is {}".format(time_start))
+
     # Record parameters
     parameters = {}
     parameters['FLAGS'] = {name:flag.value for name, flag in FLAGS.__flags.items()}
+    parameters['time_start'] = time_start
     filename = 'parameters.json'
     filename = os.path.join(FLAGS.train_dir, filename)
     with open(filename, 'w') as outfile:
@@ -569,11 +574,19 @@ def main(argv=None):
     print("Saved {}".format(filename))
 
     # Training or showing off?
-
     if FLAGS.run == 'demo':
         _demo2()
     elif FLAGS.run == 'train':
         _train()
+
+    time_ended = time.strftime("%Y-%m-%d-%H-%M-%S")
+    print("ENDED. Time is {}".format(time_ended))
+
+    # Overwrite log file now that we are complete
+    parameters['time_ended'] = time_ended
+    with open(filename, 'w') as outfile:
+        json.dump(parameters, outfile, indent=4)
+    print("Saved {}".format(filename))
 
 if __name__ == '__main__':
   tf.app.run()
