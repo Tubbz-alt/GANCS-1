@@ -294,34 +294,34 @@ def setup_tensorflow(gpu_memory_fraction=0.9):
 
     return sess, summary_writer   
 
-def _demo():
-    # Load checkpoint
-    if not tf.gfile.IsDirectory(FLAGS.checkpoint_dir):
-        raise FileNotFoundError("Could not find folder `%s'" % (FLAGS.checkpoint_dir,))
+# def _demo():
+#     # Load checkpoint
+#     if not tf.gfile.IsDirectory(FLAGS.checkpoint_dir):
+#         raise FileNotFoundError("Could not find folder `%s'" % (FLAGS.checkpoint_dir,))
 
-    # Setup global tensorflow state
-    sess, summary_writer = setup_tensorflow()
+#     # Setup global tensorflow state
+#     sess, summary_writer = setup_tensorflow()
 
-    # Prepare directories
-    filenames = prepare_dirs(delete_train_dir=False)
+#     # Prepare directories
+#     filenames = prepare_dirs(delete_train_dir=False)
 
-    # Setup async input queues
-    features, labels = srez_input.setup_inputs(sess, filenames)
+#     # Setup async input queues
+#     features, labels = srez_input.setup_inputs(sess, filenames)
 
-    # Create and initialize model
-    [gene_minput, gene_moutput,
-     gene_output, gene_var_list,
-     disc_real_output, disc_fake_output, disc_var_list] = \
-            srez_model.create_model(sess, features, labels)
+#     # Create and initialize model
+#     [gene_minput, gene_moutput,
+#      gene_output, gene_var_list,
+#      disc_real_output, disc_fake_output, disc_var_list] = \
+#             srez_model.create_model(sess, features, labels)
 
-    # Restore variables from checkpoint
-    saver = tf.train.Saver()
-    filename = 'checkpoint_new.txt'
-    filename = os.path.join(FLAGS.checkpoint_dir, filename)
-    saver.restore(sess, filename)
+#     # Restore variables from checkpoint
+#     saver = tf.train.Saver()
+#     filename = 'checkpoint_new.txt'
+#     filename = os.path.join(FLAGS.checkpoint_dir, filename)
+#     saver.restore(sess, filename)
 
-    # Execute demo
-    srez_demo.demo1(sess)
+#     # Execute demo
+#     srez_demo.demo1(sess)
 
 
 def _demo2():
@@ -449,12 +449,14 @@ def _train():
 
     # Separate training and test sets (SEPARATE FOLDERS)
     sample_train = len(filenames_input_train) if FLAGS.sample_train <=0 else FLAGS.sample_train
+    sample_test = len(filenames_input_test) if FLAGS.sample_test <= 0 else FLAGS.sample_test 
+
     train_filenames_input = filenames_input_train[:sample_train]    
     train_filenames_output = filenames_output_train[:sample_train]
 
-    sample_test = len(filenames_input_test) if FLAGS.sample_test <= 0 else FLAGS.sample_test      
-    test_filenames_input  = filenames_input_test[:sample_test]
-    test_filenames_output  = filenames_output_test[:sample_test]
+    # TODO If separate folders, index `:sample_test`. Currently hacked for same-folder split.
+    test_filenames_input  = filenames_input_test[-sample_test:]  # filenames_input_test[:sample_test]
+    test_filenames_output  = filenames_output_test[-sample_test:]  # filenames_output_test[:sample_test]
     #print('test_filenames_input', test_filenames_input)
     #print('train_filenames_input', train_filenames_input)
 
