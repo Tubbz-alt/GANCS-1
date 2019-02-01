@@ -5,6 +5,7 @@ import tensorflow as tf
 import time
 import json
 from scipy.io import savemat
+import math
 
 FLAGS = tf.app.flags.FLAGS
 # FLAGS.sample_size_y = FLAGS.sample_size if FLAGS.sample_size_y<0
@@ -145,14 +146,14 @@ def train_model(train_data, num_sample_train, num_sample_test):
         valid_stats = []
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
 
-        #first train based on MSE and then GAN
-        # if batch < 2e3+1:
-        #    feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : 1}
-        # else:
-        #    feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : (1/np.sqrt(batch+6-2e3)) + 0.75}
-
-        feed_dict = {td.learning_rate : lrval, td.gene_mse_factor: FLAGS.gene_mse_factor}
-
+        # First train based on MSE and then GAN TODO
+        b = 2e3 + 1  # start of annealing
+        c = FLAGS.gene_mse_factor  # limiting value
+        a = 1 / (1 - c)**2  # ensure continuity
+        gmf = 1.0 if batch < b else c + 1/math.sqrt(batch + a - b)
+        # OR consistent GAN
+        # gmf = FLAGS.gene_mse_factor
+        feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : gmf}
 
         #feed_dict = {td.learning_rate : lrval}
         
