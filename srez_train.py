@@ -11,6 +11,14 @@ FLAGS = tf.app.flags.FLAGS
 # FLAGS.sample_size_y = FLAGS.sample_size if FLAGS.sample_size_y<0
 OUTPUT_TRAIN_SAMPLES = 0
 
+def _save_stats(fname, stats, header):
+    stats_fname = os.path.join(FLAGS.train_dir, fname)
+    stats = np.asarray(stats, dtype=np.float32)
+    np.savetxt(stats_fname, stats, 
+            fmt="%.5f", delimiter=" ", header=header, comments="")
+    print("Saved {}".format(stats_fname))
+
+
 def _summarize_progress(train_data, feature, label, gene_output, 
                         batch, suffix, max_samples=8, gene_param=None):
     
@@ -137,13 +145,12 @@ def train_model(train_data, num_sample_train, num_sample_test):
     print('prepare {0} test feature batches'.format(num_batch_test))
     # print([type(x) for x in list_test_features])
     # print([type(x) for x in list_test_labels])
-    # TODO add time to data dump, and add this header to the top.
+    train_stats = []
+    valid_stats = []
     train_header = ['batch', 'G_loss', 'G_loss_MSE', 'G_loss_LS', 'D_loss_real', 'D_loss_fake']
     valid_header = train_header + ['time']
     while not done:
         batch += 1
-        train_stats = []
-        valid_stats = []
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
 
         # First train based on MSE and then GAN TODO
@@ -214,12 +221,12 @@ def train_model(train_data, num_sample_train, num_sample_test):
                 # gene_output, gene_layers, gene_var_list, disc_var_list, disc_layers= td.sess.run(ops, feed_dict=feed_dict)       
                 
                 # ops = [td.gene_moutput, td.gene_mlayers, td.disc_mlayers, td.disc_moutput, td.disc_gradients]
-                ops = [td.gene_moutput, td.disc_moutput, td.disc_real_loss, td.disc_fake_loss, td.list_gene_losses]                   
+                ops = [td.gene_moutput, td.disc_moutput, td.gene_ls_loss, td.disc_real_loss, td.disc_fake_loss, td.list_gene_losses]                   
 
                 # get timing
                 forward_passing_time = time.time()
                 # gene_output, gene_layers, disc_layers, disc_output, disc_gradients = td.sess.run(ops, feed_dict=feed_dict)
-                gene_output, disc_output, disc_real_loss, disc_fake_loss, list_gene_losses = td.sess.run(ops, feed_dict=feed_dict) 
+                gene_output, disc_output, gene_ls_loss, disc_real_loss, disc_fake_loss, list_gene_losses = td.sess.run(ops, feed_dict=feed_dict) 
                 inference_time = time.time() - forward_passing_time
 
                 [gene_mixmse_loss, gene_mse_loss, \
@@ -268,16 +275,10 @@ def train_model(train_data, num_sample_train, num_sample_test):
                 # disc_layers = None
 
             # Prepare statistics for file dump
-            train_stats = np.asarray(train_stats, dtype=np.float32)
-            train_stats_file = "{}_stats_train.csv".format(batch)
-            np.savetxt(train_stats_file, train_stats, 
-                    fmt="%.5f", delimiter=" ", comments="")
-            print("Saved {}".format(train_stats_file))
-            valid_stats = np.asarray(valid_stats, dtype=np.float32)
-            valid_stats_file = "{}_stats_valid.csv".format(batch)
-            np.savetxt(valid_stats_file, valid_stats, 
-                    fmt="%.5f", delimiter=" ", comments="")
-            print("Saved {}".format(valid_stats_file))
+            _save_stats("{}_train_stats.csv".format(batch), train_stats, train_header)
+            _save_stats("{}_valid_stats.csv".format(batch), valid_stats, valid_header)
+            train_stats = []
+            valid_stats = []
 
         # export train batches
         if OUTPUT_TRAIN_SAMPLES and (batch % FLAGS.summary_train_period == 0):
