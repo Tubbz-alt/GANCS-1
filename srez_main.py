@@ -387,6 +387,9 @@ class TrainData(object):
         self.__dict__.update(dictionary)
 
 def _train():
+    time_start = time.strftime("%Y-%m-%d-%H-%M-%S")
+    print("START. Time is {}".format(time_start))
+
     # Setup global tensorflow state
     sess, summary_writer = setup_tensorflow()
 
@@ -404,6 +407,15 @@ def _train():
     filenames_input_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
     filenames_output_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
 
+    # Record parameters
+    parameters = {}
+    parameters['FLAGS'] = {name:flag.value for name, flag in FLAGS.__flags.items()}
+    parameters['time_start'] = time_start
+    parameters_fname = 'parameters.json'
+    parameters_fname = os.path.join(FLAGS.train_dir, parameters_fname)
+    with open(parameters_fname, 'w') as outfile:
+        json.dump(parameters, outfile, indent=4)
+    print("Saved {}".format(parameters_fname))
 
     ## Prepare directories (SAME FOLDER)
     #prepare_dirs(delete_train_dir=True, shuffle_filename=False)
@@ -560,20 +572,16 @@ def _train():
     train_data = TrainData(locals())
     srez_train.train_model(train_data, num_sample_train, num_sample_test)
 
-def main(argv=None):
+    time_ended = time.strftime("%Y-%m-%d-%H-%M-%S")
+    print("ENDED. Time is {}".format(time_ended))
 
-    time_start = time.strftime("%Y-%m-%d-%H-%M-%S")
-    print("START. Time is {}".format(time_start))
-
-    # Record parameters
-    parameters = {}
-    parameters['FLAGS'] = {name:flag.value for name, flag in FLAGS.__flags.items()}
-    parameters['time_start'] = time_start
-    filename = 'parameters.json'
-    filename = os.path.join(FLAGS.train_dir, filename)
-    with open(filename, 'w') as outfile:
+    # Overwrite log file now that we are complete
+    parameters['time_ended'] = time_ended
+    with open(parameters_fname, 'w') as outfile:
         json.dump(parameters, outfile, indent=4)
-    print("Saved {}".format(filename))
+    print("Saved {}".format(parameters_fname))
+
+def main(argv=None):
 
     # Training or showing off?
     if FLAGS.run == 'demo':
@@ -581,14 +589,6 @@ def main(argv=None):
     elif FLAGS.run == 'train':
         _train()
 
-    time_ended = time.strftime("%Y-%m-%d-%H-%M-%S")
-    print("ENDED. Time is {}".format(time_ended))
-
-    # Overwrite log file now that we are complete
-    parameters['time_ended'] = time_ended
-    with open(filename, 'w') as outfile:
-        json.dump(parameters, outfile, indent=4)
-    print("Saved {}".format(filename))
 
 if __name__ == '__main__':
   tf.app.run()
