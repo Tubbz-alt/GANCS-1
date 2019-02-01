@@ -12,6 +12,13 @@ FLAGS = tf.app.flags.FLAGS
 OUTPUT_TRAIN_SAMPLES = 0
 
 def _save_stats(fname, stats, header):
+    if type(header) == list:
+        try:
+            header = " ".join(header)
+        except:
+            raise TypeError("header must only contain strings")
+    if type(header) != str:
+        raise TypeError("header must be a string")
     stats_fname = os.path.join(FLAGS.train_dir, fname)
     stats = np.asarray(stats, dtype=np.float32)
     np.savetxt(stats_fname, stats, 
