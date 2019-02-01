@@ -91,7 +91,7 @@ def setup_inputs_one_sources(sess, filenames_input, filenames_output, image_size
     key, value_input = reader_input.read(filename_queue_input)
     channels = 3
     # TODO
-    image_input = tf.image.decode_png(value_input, channels=channels, name="input_image")
+    image_input = tf.image.decode_png(value_input, channels=channels, dtype=tf.uint16, name="input_image")
     # image_input = tf.image.decode_jpeg(value_input, channels=channels, name="input_image")
     image_input.set_shape([256, 256, channels])
 
