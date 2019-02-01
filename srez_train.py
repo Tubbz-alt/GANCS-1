@@ -136,9 +136,13 @@ def train_model(train_data, num_sample_train, num_sample_test):
     print('prepare {0} test feature batches'.format(num_batch_test))
     # print([type(x) for x in list_test_features])
     # print([type(x) for x in list_test_labels])
-    accumuated_err_loss=[]
+    # TODO add time to data dump, and add this header to the top.
+    train_header = ['batch', 'G_loss', 'G_loss_MSE', 'G_loss_LS', 'D_loss_real', 'D_loss_fake']
+    valid_header = train_header + ['time']
     while not done:
         batch += 1
+        train_stats = []
+        valid_stats = []
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
 
         #first train based on MSE and then GAN
@@ -167,7 +171,8 @@ def train_model(train_data, num_sample_train, num_sample_test):
         elapsed = int(time.time() - start_time)/60
 
         # verbose training progress
-        if batch % 10 == 0 or (FLAGS.fixed_epochs and batch >= total_batch) or (not FLAGS.fixed_epochs and elapsed >= FLAGS.train_time):
+        if batch % 10 == 0 or (FLAGS.fixed_epochs and batch >= total_batch) \
+                or (not FLAGS.fixed_epochs and elapsed >= FLAGS.train_time):
             # Show we are alive
 
             if FLAGS.fixed_epochs:
@@ -177,14 +182,17 @@ def train_model(train_data, num_sample_train, num_sample_test):
                 progress = int(100 * elapsed / FLAGS.train_time)
                 eta = FLAGS.train_time - elapsed
 
-            err_log = 'Progress[{0:3f}%], ETA[{1:4f}m], Batch [{2:4f}], G_Loss[{3:3.3f}], G_mse_Loss[{4:3.3f}], G_LS_Loss[{5:3.3f}], D_Real_Loss[{6:3.3f}], D_Fake_Loss[{7:3.3f}]'.format(
+            err_log = ('Progress[{0:3f}%], ETA[{1:4f}m], Batch [{2:4f}], '
+                    'G_Loss[{3:3.3f}], G_mse_Loss[{4:3.3f}], G_LS_Loss[{5:3.3f}], '
+                    'D_Real_Loss[{6:3.3f}], D_Fake_Loss[{7:3.3f}]').format(
                     progress, eta, batch, 
-                    gene_loss, gene_mse_loss, gene_ls_loss, disc_real_loss, disc_fake_loss)
+                    gene_loss, gene_mse_loss, gene_ls_loss, 
+                    disc_real_loss, disc_fake_loss)
             print(err_log)
             # update err loss
             err_loss = [int(batch), float(gene_loss), float(gene_mse_loss), 
                         float(gene_ls_loss), float(disc_real_loss), float(disc_fake_loss)]
-            accumuated_err_loss.append(err_loss)
+            train_stats.append(err_loss)
             
             # Update learning rate
             if batch % FLAGS.learning_rate_half_life == 0:
@@ -217,10 +225,14 @@ def train_model(train_data, num_sample_train, num_sample_test):
                  gene_l2_loss, gene_l1_loss, \
                  gene_ssim_loss, gene_dc_loss, \
                  gene_fool_loss, gene_non_mse_l2, gene_loss] = list_gene_losses
-                validate_log = 'Validation: Batch [{:4f}], Inference_Time[{:3.4f}], G_Loss[{:3.3f}], G_mse_Loss[{:3.3f}], G_LS_Loss[{:3.3f}], D_Real_Loss[{:3.3f}], D_Fake_Loss[{:3.3f}]'.format(
-                    batch, inference_time, gene_loss, gene_mse_loss, gene_ls_loss, disc_real_loss, disc_fake_loss)
-                validate_loss = [int(batch), float(gene_loss), float(gene_mse_loss), 
-                                 float(gene_ls_loss), float(disc_real_loss), float(disc_fake_loss)]
+                validate_log = ('Validation: Batch [{:4f}], G_Loss[{:3.3f}], G_mse_Loss[{:3.3f}], G_LS_Loss[{:3.3f}], '
+                                'D_Real_Loss[{:3.3f}], D_Fake_Loss[{:3.3f}], Inference_Time[{:3.4f}],').format(
+                                batch, gene_loss, gene_mse_loss, gene_ls_loss, 
+                                disc_real_loss, disc_fake_loss, inference_time)
+                print(validate_log)
+                validate_loss = [int(batch), float(gene_loss), float(gene_mse_loss), float(gene_ls_loss), 
+                                 float(disc_real_loss), float(disc_fake_loss), float(inference_time)]
+                valid_stats.append(validate_loss)
 
                 # output shapes
                 # print('disc loss gradients:', [x.shape for x in disc_gradients])
@@ -231,30 +243,40 @@ def train_model(train_data, num_sample_train, num_sample_test):
 
                 # save record
                 # update 1217 add gradients
-                gene_param = {'train_log':err_log,
-                              'train_loss':accumuated_err_loss,
-                              'validate_log':validate_log,
-                              'validate_loss':validate_loss,
-                              'inference_time':inference_time,
-                            #   'gene_layers':[x.tolist() for x in gene_layers if x.shape[-1]<10], 
-                            #   'disc_layers':[x.tolist() for x in disc_layers],
-                            #   'disc_gradients':[x.tolist() for x in disc_gradients],
-                }                
+                # gene_param = {'train_log':err_log,
+                #               'train_loss':accumulated_err_loss,
+                #               'validate_log':validate_log,
+                #               'validate_loss':validate_loss,
+                #               'inference_time':inference_time,
+                #             #   'gene_layers':[x.tolist() for x in gene_layers if x.shape[-1]<10], 
+                #             #   'disc_layers':[x.tolist() for x in disc_layers],
+                #             #   'disc_gradients':[x.tolist() for x in disc_gradients],
+                # }
 
                 # # gene layers are too large
-                # if index_batch_test>0:
-                #     gene_param['gene_layers']=[]
-                #     gene_param['disc_layers']=[]
-                _summarize_progress(td, test_feature, test_label, gene_output, batch, 
-                                    'validate{0}'.format(index_batch_test),                                     
-                                    max_samples = batch_size,
-                                    gene_param = gene_param)
+                # # if index_batch_test>0:
+                # #     gene_param['gene_layers']=[]
+                # #     gene_param['disc_layers']=[]
+                # _summarize_progress(td, test_feature, test_label, gene_output, batch, 
+                #                     'validate{0}'.format(index_batch_test),                                     
+                #                     max_samples = batch_size,
+                #                     gene_param = gene_param)
                 # try to reduce mem
                 gene_output = None
-                gene_layers = None
-                disc_layers = None
-                
-            accumuated_err_loss = []
+                # gene_layers = None
+                # disc_layers = None
+
+            # Prepare statistics for file dump
+            train_stats = np.asarray(train_stats, dtype=np.float32)
+            train_stats_file = "{}_stats_train.csv".format(batch)
+            np.savetxt(train_stats_file, train_stats, 
+                    fmt="%.5f", delimiter=" ", comments="")
+            print("Saved {}".format(train_stats_file))
+            valid_stats = np.asarray(valid_stats, dtype=np.float32)
+            valid_stats_file = "{}_stats_valid.csv".format(batch)
+            np.savetxt(valid_stats_file, valid_stats, 
+                    fmt="%.5f", delimiter=" ", comments="")
+            print("Saved {}".format(valid_stats_file))
 
         # export train batches
         if OUTPUT_TRAIN_SAMPLES and (batch % FLAGS.summary_train_period == 0):
