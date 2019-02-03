@@ -1,4 +1,5 @@
 from srez_model import loss_DSSIS_tf11
+from srez_train import _save_stats
 # import moviepy.editor as mpe
 import numpy as np
 import numpy.random
@@ -45,6 +46,9 @@ def demo2(data, num_sample):
         list_labels.append(label)
     print('Prepared {0} feature batches'.format(num_batch))
 
+    test_header = ['batch', 'L1_error', 'L2_error', 'SSIM', 'time']
+    test_stats = []
+
     for index_batch in range(int(num_batch)):
         print('Batch {}'.format(index_batch))
 
@@ -64,26 +68,34 @@ def demo2(data, num_sample):
         # dum = tf.abs(dum)
         # dum = tf.reshape(dum, [FLAGS.batch_size, 256, 256, 1])
         # ops=[dum]
+
+        # Run
         forward_passing_time = time.time()
         # gene_output, gene_layers, disc_layers, disc_output, disc_gradients = d.sess.run(ops, feed_dict=feed_dict)
         gene_output, = d.sess.run(ops, feed_dict=feed_dict)
         # gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = d.sess.run(ops, feed_dict=feed_dict)   
+        
+        # Stats
         inference_time = time.time() - forward_passing_time
-        print('Batch forward pass took {}s'.format(inference_time))
-
+        gene_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
         l1_error = tf.reduce_mean(tf.abs(gene_output - label))
         l2_error  = tf.reduce_mean(tf.square(gene_output - label))
-        ssim = loss_DSSIS_tf11(label, gene_output)
+        ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)
         l1_error, l2_error, ssim = d.sess.run([l1_error, l2_error, ssim])
+        print('Time: {}s'.format(inference_time))
         print('L1 error: {}'.format(l1_error))
         print('L2 error: {}'.format(l2_error))
         print('SSIM: {}'.format(ssim))
+        test_stats.append([index_batch, l1_error, l2_error, ssim, inference_time])
 
+        # Visual
         print('Saving comparison figure')
         save_image_output(d, feature, label, gene_output, 
             index_batch, 'test{}'.format(index_batch), batch_size)
 
-        print('Demo complete.')
+    print('Saving stats')
+    _save_stats("{}_test_stats.csv".format(index_batch), test_stats, test_header)
+    print('Demo complete.')
 
 
 def save_image_output(data, feature, label, gene_output, 
