@@ -77,7 +77,7 @@ def demo2(data, num_sample):
         
         # Stats
         inference_time = time.time() - forward_passing_time
-        gene_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
+        gene_output = (gene_output - tf.reduce_min(gene_output)) / (tf.reduce_max(gene_output) - tf.reduce_min(gene_output))
         error = gene_output - label
         l1_error = tf.reduce_mean(tf.abs(error))
         l2_error  = tf.reduce_mean(tf.square(error))
