@@ -46,7 +46,7 @@ def demo2(data, num_sample):
         list_labels.append(label)
     print('Prepared {0} feature batches'.format(num_batch))
 
-    test_header = ['batch', 'L1_error', 'L2_error', 'SSIM', 'time']
+    test_header = ['batch', 'L1_error', 'L2_error', 'SNR', 'SSIM', 'time']
     test_stats = []
 
     for index_batch in range(int(num_batch)):
@@ -78,20 +78,23 @@ def demo2(data, num_sample):
         # Stats
         inference_time = time.time() - forward_passing_time
         gene_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
-        l1_error = tf.reduce_mean(tf.abs(gene_output - label))
-        l2_error  = tf.reduce_mean(tf.square(gene_output - label))
+        error = gene_output - label
+        l1_error = tf.reduce_mean(tf.abs(error))
+        l2_error  = tf.reduce_mean(tf.square(error))
+        snr = tf.square(tf.divide(tf.reduce_mean(label), tf.reduce_mean(error)))
         ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)
-        l1_error, l2_error, ssim = d.sess.run([l1_error, l2_error, ssim])
+        l1_error, l2_error, snr, ssim = d.sess.run([l1_error, l2_error, snr, ssim])
         print('Time: {}s'.format(inference_time))
         print('L1 error: {}'.format(l1_error))
         print('L2 error: {}'.format(l2_error))
+        print('SNR: {}'.format(snr))
         print('SSIM: {}'.format(ssim))
-        test_stats.append([index_batch, l1_error, l2_error, ssim, inference_time])
+        test_stats.append([index_batch, l1_error, l2_error, snr, ssim, inference_time])
 
         # Visual
-        print('Saving comparison figure')
-        save_image_output(d, feature, label, gene_output, 
-            index_batch, 'test{}'.format(index_batch), batch_size)
+        # print('Saving comparison figure')
+        # save_image_output(d, feature, label, gene_output, 
+        #     index_batch, 'test{}'.format(index_batch), batch_size)
 
     print('Saving stats')
     _save_stats("{}_test_stats.csv".format(index_batch), test_stats, test_header)
