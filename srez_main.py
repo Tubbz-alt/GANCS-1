@@ -336,6 +336,13 @@ def _demo2():
     test_filenames_input = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
     test_filenames_output = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
 
+    if FLAGS.subsample_test > 0:
+        index_sample_test_selected = random.sample(range(len(test_filenames_input)), FLAGS.subsample_test)
+        if not FLAGS.permutation_test:
+            index_sample_test_selected = sorted(index_sample_test_selected)
+        test_filenames_input = [test_filenames_input[x] for x in index_sample_test_selected]
+        test_filenames_output = [test_filenames_output[x] for x in index_sample_test_selected]
+
     # image_size
     if FLAGS.sample_size_y>0:
         image_size = [FLAGS.sample_size, FLAGS.sample_size_y]
