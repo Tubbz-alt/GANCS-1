@@ -425,8 +425,8 @@ def _train():
                 continue
             train_dir = os.path.join(FLAGS.dataset, str(i))
             filenames = get_filenames(dir_file=train_dir, shuffle_filename=True)
-            filenames_input_train.append(filenames)
-            filenames_output_train.append(filenames)
+            filenames_input_train.extend(filenames)
+            filenames_output_train.extend(filenames)
         test_dir = os.path.join(FLAGS.dataset, str(FLAGS.cv_index))
         filenames_input_test = get_filenames(dir_file=test_dir, shuffle_filename=True)
         filenames_output_test = get_filenames(dir_file=test_dir, shuffle_filename=True)

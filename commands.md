@@ -46,7 +46,7 @@ exp4: recurrent 10 copies, 1 residual block*, cross-validation
 
 conda activate tf-biomed
 cd ~/honours/GANCS
-python srez_main.py --run train --dataset /home/Student/s4360417/honours/datasets/oasis3/exp3_png_3/ground_truth/cv --sampling_pattern  /home/Student/s4360417/honours/datasets/oasis3/exp3_png_3/artefact_fcs_0/mask.mat --sample_train 11520 --sample_test 1280 --batch_size 2 --num_epoch 20 --gene_mse_factor 0.9 --learning_beta1 0.9 --learning_rate_start 1e-5 --learning_rate_half_life 10000 --sample_size 256 --sample_size_y 256 --summary_period 5760 --checkpoint_period -1 --train_dir train${SLURM_ARRAY_TASK_ID} --checkpoint_dir checkpoint${SLURM_ARRAY_TASK_ID}
+python srez_main.py --run train --dataset /home/Student/s4360417/honours/datasets/oasis3/exp3_png_3/cv --sampling_pattern /home/Student/s4360417/honours/datasets/oasis3/exp3_png_3/artefact_fcs_0/mask.mat --cv_groups 10 --cv_index $SLURM_ARRAY_TASK_ID --sample_train 11520 --sample_test 1280 --batch_size 2 --num_epoch 20 --gene_mse_factor 0.9 --learning_beta1 0.9 --learning_rate_start 1e-5 --learning_rate_half_life 10000 --sample_size 256 --sample_size_y 256 --summary_period 5760 --checkpoint_period -1 --train_dir train$SLURM_ARRAY_TASK_ID --checkpoint_dir checkpoint$SLURM_ARRAY_TASK_ID
 ```
 
 
