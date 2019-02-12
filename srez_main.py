@@ -99,6 +99,12 @@ tf.app.flags.DEFINE_string('checkpoint_dir', 'checkpoint',
 tf.app.flags.DEFINE_integer('checkpoint_period', 10000,
                             "Number of batches in between checkpoints. If non-positive, only checkpoints at the end of training")
 
+tf.app.flags.DEFINE_integer('cv_groups', 10,
+                            "Number of groups in cross-validation. If cv_index >= 0, expect data directories numbered 0 to this number less one.")
+
+tf.app.flags.DEFINE_integer('cv_index', -1,
+                            "Index of group to use for evaluation in cross-validation (enabled when positive). Corresponds to the name of a dataset directory.")
+
 tf.app.flags.DEFINE_string('dataset', '',
                            "Path to the train dataset directory.")
 
@@ -393,6 +399,7 @@ class TrainData(object):
     def __init__(self, dictionary):
         self.__dict__.update(dictionary)
 
+
 def _train():
     time_start = time.strftime("%Y-%m-%d-%H-%M-%S")
     print("START. Time is {}".format(time_start))
@@ -409,10 +416,25 @@ def _train():
 
     # Prepare train and test directories (SEPARATE FOLDER)
     prepare_dirs(delete_train_dir=True, shuffle_filename=False)
-    filenames_input_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=True)
-    filenames_output_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=True)
-    filenames_input_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
-    filenames_output_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
+    if FLAGS.cv_index >= 0:
+        # Cross-validation
+        filenames_input_train = []
+        filenames_output_train = []
+        for i in range(FLAGS.cv_groups):
+            if i == FLAGS.cv_index:
+                continue
+            train_dir = os.path.join(FLAGS.dataset, str(i))
+            filenames = get_filenames(dir_file=train_dir, shuffle_filename=True)
+            filenames_input_train.append(filenames)
+            filenames_output_train.append(filenames)
+        test_dir = os.path.join(FLAGS.dataset, str(FLAGS.cv_index))
+        filenames_input_test = get_filenames(dir_file=test_dir, shuffle_filename=True)
+        filenames_output_test = get_filenames(dir_file=test_dir, shuffle_filename=True)
+    else:    
+        filenames_input_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=True)
+        filenames_output_train = get_filenames(dir_file=FLAGS.dataset_train, shuffle_filename=True)
+        filenames_input_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
+        filenames_output_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
 
     # Record parameters
     parameters = {}
