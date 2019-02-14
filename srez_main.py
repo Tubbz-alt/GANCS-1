@@ -154,8 +154,8 @@ tf.app.flags.DEFINE_integer('sample_size', 128,
 tf.app.flags.DEFINE_integer('sample_size_y', -1,
                             "Image sample size in pixels. by default the sample as sample_size")
 
-tf.app.flags.DEFINE_integer('summary_period', 500,
-                            "Number of batches between summary data dumps")
+tf.app.flags.DEFINE_integer('summary_period', -1,
+                            "Number of batches between summary data dumps. Every epoch if non-positive.")
 
 tf.app.flags.DEFINE_integer('summary_train_period', 50,
                             "Number of batches between train data dumps")
