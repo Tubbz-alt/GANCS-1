@@ -165,15 +165,18 @@ def train_model(train_data, num_sample_train, num_sample_test):
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
 
         # First train based on MSE and then GAN TODO
-        b = 2e3 + 1  # start of annealing
-        c = FLAGS.gene_mse_factor  # limiting value
-        a = 1 / (1 - c)**2  # ensure continuity
-        gmf = 1.0 if batch < b else c + 1/math.sqrt(batch + a - b)
+        if FLAGS.gene_mse_factor >= 1.0:
+            gmf = 1.0
+        else:
+            b = 2e3 + 1  # start of annealing
+            c = FLAGS.gene_mse_factor  # limiting value
+            a = 1 / (1 - c)**2  # ensure continuity
+            gmf = 1.0 if batch < b else c + 1/math.sqrt(batch + a - b)
         # OR consistent GAN
         # gmf = FLAGS.gene_mse_factor
-        feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : gmf}
 
-        #feed_dict = {td.learning_rate : lrval}
+        feed_dict = {td.learning_rate : lrval, td.gene_mse_factor : gmf}
+        # feed_dict = {td.learning_rate : lrval}
         
         # for training 
         # don't export var and layers for train to reduce size
