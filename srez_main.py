@@ -211,7 +211,7 @@ tf.app.flags.DEFINE_integer('R_seed', -1,
 tf.app.flags.DEFINE_string('sampling_pattern', '',
                             "specifed file path for undersampling")
 
-tf.app.flags.DEFINE_float('gpu_memory_fraction', 0.9,
+tf.app.flags.DEFINE_float('gpu_memory_fraction', 1.0,
                             "specified the max gpu fraction used per device")
 
 tf.app.flags.DEFINE_integer('hybrid_disc', 0,
@@ -280,19 +280,21 @@ def get_filenames(dir_file='', shuffle_filename=False):
 
 
 
-def setup_tensorflow(gpu_memory_fraction=0.9):
+def setup_tensorflow(gpu_memory_fraction=1.0):
     # Create session
     config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
-    config.gpu_options.per_process_gpu_memory_fraction = min(gpu_memory_fraction, FLAGS.gpu_memory_fraction)
+    if FLAGS.gpu_memory_fraction < 1.0:
+        config.gpu_options.per_process_gpu_memory_fraction = min(gpu_memory_fraction, FLAGS.gpu_memory_fraction)
+        print('GPU usage cap set to {0}'.format(config.gpu_options.per_process_gpu_memory_fraction))
     sess = tf.Session(config=config)
-    print('TF session setup for gpu usage cap of {0}'.format(config.gpu_options.per_process_gpu_memory_fraction))
-
     # Initialize rng with a deterministic seed
     with sess.graph.as_default():
         tf.set_random_seed(FLAGS.random_seed)
     
     random.seed(FLAGS.random_seed)
     np.random.seed(FLAGS.random_seed)
+
+    print('TF session set up')
 
 # SummaryWriter is deprecated
 # tf.summary.FileWriter.
