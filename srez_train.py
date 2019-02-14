@@ -134,9 +134,13 @@ def train_model(train_data, num_sample_train, num_sample_test):
 
     # batch info    
     batch_size = FLAGS.batch_size
-    num_batch_train = num_sample_train / batch_size
-    num_batch_test = num_sample_test / batch_size
+    num_batch_train = num_sample_train // batch_size
+    num_batch_test = num_sample_test // batch_size
     total_batch = FLAGS.num_epoch * num_batch_train
+
+    summary_period = FLAGS.summary_period
+    if summary_period < 1:
+        summary_period = FLAGS.sample_train // batch_size
 
     # learning rate
     assert FLAGS.learning_rate_half_life % 10 == 0
@@ -214,7 +218,7 @@ def train_model(train_data, num_sample_train, num_sample_test):
                 lrval *= .5
 
         # export test batches
-        if batch % FLAGS.summary_period == 0:
+        if batch % summary_period == 0:
             # loop different test batch
             for index_batch_test in range(int(num_batch_test)):
                 # get test feature
