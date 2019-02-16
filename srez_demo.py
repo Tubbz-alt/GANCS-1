@@ -78,10 +78,9 @@ def demo2(data, num_sample):
         # Stats
         inference_time = time.time() - forward_passing_time
         gene_output = (gene_output - tf.reduce_min(gene_output)) / (tf.reduce_max(gene_output) - tf.reduce_min(gene_output))
-        error = gene_output - label
-        l1_error = tf.reduce_mean(tf.abs(error))
-        l2_error  = tf.reduce_mean(tf.square(error))
-        snr = tf.square(tf.divide(tf.reduce_mean(label), tf.reduce_mean(error)))
+        l1_error = tf.metrics.mean_absolute_error(label, gene_output)
+        l2_error  = tf.metrics.root_mean_squared_error(label, gene_output)
+        snr = tf.reduce_mean(label**2) / l2_error**2
         ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)
         l1_error, l2_error, snr, ssim = d.sess.run([l1_error, l2_error, snr, ssim])
         print('Time: {}s'.format(inference_time))
@@ -92,9 +91,10 @@ def demo2(data, num_sample):
         test_stats.append([index_batch, l1_error, l2_error, snr, ssim, inference_time])
 
         # Visual
-        # print('Saving comparison figure')
-        # save_image_output(d, feature, label, gene_output, 
-        #     index_batch, 'test{}'.format(index_batch), batch_size)
+        if FLAGS.summary_period > 0 and index_batch % FLAGS.summary_period == 0:
+            print('Saving comparison figure')
+            save_image_output(d, feature, label, gene_output, 
+                index_batch, 'test{}'.format(index_batch), batch_size)
 
     print('Saving stats')
     _save_stats("{}_test_stats.csv".format(index_batch), test_stats, test_header)
