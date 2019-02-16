@@ -78,8 +78,9 @@ def demo2(data, num_sample):
         # Stats
         inference_time = time.time() - forward_passing_time
         gene_output = (gene_output - tf.reduce_min(gene_output)) / (tf.reduce_max(gene_output) - tf.reduce_min(gene_output))
-        l1_error, _ = tf.metrics.mean_absolute_error(label, gene_output)
-        l2_error, _  = tf.metrics.root_mean_squared_error(label, gene_output)
+        error = gene_output - label
+        l1_error = tf.reduce_mean(tf.abs(error))
+        l2_error = tf.sqrt(tf.reduce_mean(tf.square(error)))
         snr = tf.reduce_mean(label**2) / l2_error**2
         ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)
         l1_error, l2_error, snr, ssim = d.sess.run([l1_error, l2_error, snr, ssim])
