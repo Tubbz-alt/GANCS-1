@@ -44,7 +44,7 @@ def demo2(data, num_sample):
         feature, label = d.sess.run([d.features, d.labels])
         list_features.append(feature)
         list_labels.append(label)
-    print('Prepared {0} feature batches'.format(num_batch))
+    print('Prepared {} feature batches'.format(num_batch))
 
     test_header = ['batch', 'L1_error', 'L2_error', 'SNR', 'SSIM', 'time']
     test_stats = []
@@ -95,7 +95,7 @@ def demo2(data, num_sample):
         if FLAGS.summary_period > 0 and index_batch % FLAGS.summary_period == 0:
             print('Saving comparison figure')
             save_image_output(d, feature, label, gene_output, 
-                index_batch, 'test{}'.format(index_batch), batch_size)
+                index_batch, 'test{:04d}'.format(index_batch), batch_size)
 
     print('Saving stats')
     _save_stats("{}_test_stats.csv".format(index_batch), test_stats, test_header)
@@ -141,7 +141,7 @@ def save_image_output(data, feature, label, gene_output,
 
     # Save to image file
     print('Save to image,', image.shape)
-    filename = 'batch%06d_%s.png' % (batch, suffix)
+    filename = 'batch{:06d}_{}.png'.format(batch, suffix)
     filename = os.path.join(FLAGS.train_dir, filename)
 
     # scipy.misc.toimage(image, cmin=0., cmax=1.).save(filename)
@@ -152,4 +152,4 @@ def save_image_output(data, feature, label, gene_output,
         zlist = z.tolist()
         writer.write(f, zlist)
 
-    print("    Saved %s" % (filename,))
+    print("    Saved {}".format(filename))
