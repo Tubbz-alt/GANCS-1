@@ -49,6 +49,10 @@ cd ~/honours/GANCS
 python srez_main.py --run train --dataset /home/Student/s4360417/honours/datasets/oasis3/exp3_png_3/cv --sampling_pattern /home/Student/s4360417/honours/datasets/oasis3/exp3_png_3/artefact_fcs_0/mask.mat --cv_groups 10 --cv_index $SLURM_ARRAY_TASK_ID --sample_train 11520 --sample_test 1280 --batch_size 2 --num_epoch 20 --gene_mse_factor 0.9 --learning_beta1 0.9 --learning_rate_start 1e-5 --learning_rate_half_life 10000 --sample_size 256 --sample_size_y 256 --summary_period 5760 --checkpoint_period -1 --train_dir train$SLURM_ARRAY_TASK_ID --checkpoint_dir checkpoint$SLURM_ARRAY_TASK_ID
 ```
 
+Initial RGANCS with L1 only
+```
+python srez_main.py --run train --dataset /home/Student/s4360417/honours/datasets/oasis3/fractal_cs/cv --sampling_pattern /home/Student/s4360417/honours/datasets/oasis3/fractal_cs/artefact_fcs_4/mask.mat --cv_groups 5 --cv_index 0 --sample_train 6400 --sample_test 1600 --batch_size 2 --num_epoch 20 --gene_mse_factor 1.0 --learning_beta1 0.9 --learning_rate_start 1e-5 --learning_rate_half_life 10000 --sample_size 256 --sample_size_y 256 --checkpoint_period -1 --train_dir train0 --checkpoint_dir checkpoint0
+```
 
 ### Test
 
@@ -62,4 +66,10 @@ python srez_main.py --run demo --dataset /home/Student/s4360417/honours/datasets
 
 ```
 python srez_main.py --run demo --dataset /home/Student/s4360417/honours/datasets/oasis3/exp3_png_2/ground_truth/train --dataset_train /home/Student/s4360417/honours/datasets/oasis3/exp3_png_2/ground_truth/train --dataset_test /home/Student/s4360417/honours/datasets/oasis3/exp3_png_2/ground_truth/test --sampling_pattern /home/Student/s4360417/honours/datasets/oasis3/exp3_png_2/artefact_fcs_1/mask.mat --sample_train 6400 --sample_test 1280 --batch_size 2 --num_epoch 20 --gene_mse_factor 0.9 --learning_beta1 0.9 --learning_rate_start 1e-5 --learning_rate_half_life 10000 --sample_size 256 --sample_size_y 256 --summary_period 3200 --checkpoint_period -1 --subsample_test -1 --train_dir test --checkpoint_dir checkpoint
+```
+
+RGANCS with CV
+
+```
+python srez_main.py --run demo --dataset /home/Student/s4360417/honours/datasets/oasis3/fractal_cs/cv/0 --sampling_pattern /home/Student/s4360417/honours/datasets/oasis3/fractal_cs/artefact_fcs_4/mask.mat --sample_test 1600 --subsample_test 1600 --permutation_test True --sample_size 256 --sample_size_y 256 --batch_size 2 --train_dir test0 --checkpoint_dir checkpoint0 --summary_period 100
 ```
