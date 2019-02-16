@@ -341,8 +341,8 @@ def _demo2():
     sess, summary_writer = setup_tensorflow()
 
     # data directories
-    test_filenames_input = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
-    test_filenames_output = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
+    test_filenames_input = get_filenames(dir_file=FLAGS.dataset, shuffle_filename=False)
+    test_filenames_output = get_filenames(dir_file=FLAGS.dataset, shuffle_filename=False)
 
     if FLAGS.subsample_test > 0:
         index_sample_test_selected = random.sample(range(len(test_filenames_input)), FLAGS.subsample_test)
