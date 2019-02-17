@@ -332,7 +332,28 @@ def setup_tensorflow(gpu_memory_fraction=1.0):
 #     srez_demo.demo1(sess)
 
 
+def save_parameters(use_flags=True, existing=None, **kwargs):
+    if existing is None:
+        parameters = {}
+    else:
+        parameters = existing
+    if use_flags:
+        parameters['FLAGS'] = {name:flag.value for name, flag in FLAGS.__flags.items()}
+    for k, v in kwargs:
+        parameters[k] = v
+    parameters_fname = 'parameters.json'
+    parameters_fname = os.path.join(FLAGS.train_dir, parameters_fname)
+    with open(parameters_fname, 'w') as outfile:
+        json.dump(parameters, outfile, indent=4)
+    print("Saved {}".format(parameters_fname))
+    return parameters
+
+
 def _demo2():
+    time_start = time.strftime("%Y-%m-%d-%H-%M-%S")
+    print("START. Time is {}".format(time_start))
+    parameters = save_parameters(time_start=time_start)
+
     # Load checkpoint
     if not tf.gfile.IsDirectory(FLAGS.checkpoint_dir):
         raise FileNotFoundError("Could not find folder '{}'".format(FLAGS.checkpoint_dir))
@@ -396,6 +417,11 @@ def _demo2():
     num_sample = FLAGS.sample_test if FLAGS.sample_test > 0 else FLAGS.batch_size
     srez_demo.demo2(test_data, num_sample)
 
+    time_ended = time.strftime("%Y-%m-%d-%H-%M-%S")
+    print("ENDED. Time is {}".format(time_ended))
+    # Overwrite log file now that we are complete
+    save_parameters(use_flags=False, existing=parameters, time_ended=time_ended)
+
 
 class TrainData(object):
     def __init__(self, dictionary):
@@ -439,14 +465,7 @@ def _train():
         filenames_output_test = get_filenames(dir_file=FLAGS.dataset_test, shuffle_filename=False)
 
     # Record parameters
-    parameters = {}
-    parameters['FLAGS'] = {name:flag.value for name, flag in FLAGS.__flags.items()}
-    parameters['time_start'] = time_start
-    parameters_fname = 'parameters.json'
-    parameters_fname = os.path.join(FLAGS.train_dir, parameters_fname)
-    with open(parameters_fname, 'w') as outfile:
-        json.dump(parameters, outfile, indent=4)
-    print("Saved {}".format(parameters_fname))
+    parameters = save_parameters(time_start=time_start)
 
     ## Prepare directories (SAME FOLDER)
     #prepare_dirs(delete_train_dir=True, shuffle_filename=False)
@@ -607,10 +626,8 @@ def _train():
     print("ENDED. Time is {}".format(time_ended))
 
     # Overwrite log file now that we are complete
-    parameters['time_ended'] = time_ended
-    with open(parameters_fname, 'w') as outfile:
-        json.dump(parameters, outfile, indent=4)
-    print("Saved {}".format(parameters_fname))
+    save_parameters(use_flags=False, existing=parameters, time_ended=time_ended)
+
 
 def main(argv=None):
 
