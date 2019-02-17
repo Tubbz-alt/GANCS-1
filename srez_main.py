@@ -352,6 +352,7 @@ def save_parameters(use_flags=True, existing=None, **kwargs):
 def _demo2():
     time_start = time.strftime("%Y-%m-%d-%H-%M-%S")
     print("START. Time is {}".format(time_start))
+    mkdirp(FLAGS.train_dir)
     parameters = save_parameters(time_start=time_start)
 
     # Load checkpoint
