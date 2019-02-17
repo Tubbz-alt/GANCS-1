@@ -46,7 +46,7 @@ def demo2(data, num_sample):
         list_labels.append(label)
     print('Prepared {} feature batches'.format(num_batch))
 
-    test_header = ['batch', 'L1_error', 'L2_error', 'SNR', 'SSIM', 'time']
+    test_header = ['Batch', 'MAE', 'RMSE', 'SNR', 'SSIM', 'Time']
     test_stats = []
 
     for index_batch in range(int(num_batch)):
@@ -77,14 +77,16 @@ def demo2(data, num_sample):
         
         # Stats
         inference_time = time.time() - forward_passing_time
-        gene_output = (gene_output - tf.reduce_min(gene_output)) / (tf.reduce_max(gene_output) - tf.reduce_min(gene_output))
+        slice_time = inference_time / batch_size
+        # gene_output = (gene_output - tf.reduce_min(gene_output)) / (tf.reduce_max(gene_output) - tf.reduce_min(gene_output))
+        gene_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
         error = gene_output - label
         l1_error = tf.reduce_mean(tf.abs(error))
         l2_error = tf.sqrt(tf.reduce_mean(tf.square(error)))
-        snr = tf.reduce_mean(label**2) / l2_error**2
+        snr = 10.0 * tf.log(tf.reduce_mean(label**2) / l2_error**2) / tf.log(10.0)
         ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)
         l1_error, l2_error, snr, ssim = d.sess.run([l1_error, l2_error, snr, ssim])
-        print('Time: {}s'.format(inference_time))
+        print('Slice time: {}s'.format(slice_time))
         print('L1 error: {}'.format(l1_error))
         print('L2 error: {}'.format(l2_error))
         print('SNR: {}'.format(snr))
@@ -133,14 +135,13 @@ def save_image_output(data, feature, label, gene_output,
     image = image[0:max_samples,:,:]
     image = tf.concat(axis=0, values=[image[i,:,:] for i in range(int(max_samples))])
     image = d.sess.run(image)
-    print('Save to image size {} type {}', image.shape, type(image))
 
     # 3rd channel for visualization
     # mag_3rd = np.maximum(image[:,:,0],image[:,:,1])
     # image = np.concatenate((image, mag_3rd[:,:,np.newaxis]),axis=2)
 
     # Save to image file
-    print('Save to image,', image.shape)
+    print('Save to image size {} type {}'.format(image.shape, type(image)))
     filename = 'batch{:06d}_{}.png'.format(batch, suffix)
     filename = os.path.join(FLAGS.train_dir, filename)
 
