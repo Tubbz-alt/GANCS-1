@@ -339,7 +339,7 @@ def save_parameters(use_flags=True, existing=None, **kwargs):
         parameters = existing
     if use_flags:
         parameters['FLAGS'] = {name:flag.value for name, flag in FLAGS.__flags.items()}
-    for k, v in kwargs:
+    for k, v in kwargs.items():
         parameters[k] = v
     parameters_fname = 'parameters.json'
     parameters_fname = os.path.join(FLAGS.train_dir, parameters_fname)
