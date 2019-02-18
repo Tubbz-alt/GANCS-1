@@ -6,7 +6,11 @@
 *.png
 *.mat
 *.h5
+*.out
+
 .vscode/
 train*/
 test*/
 checkpoint*/
+sample*/
+
