@@ -125,8 +125,6 @@ def train_model(train_data, num_sample_train, num_sample_test):
     # DONE: change to tf.global_variables_initializer()
     td.sess.run(tf.global_variables_initializer())
 
-    #TODO: load data
-
     lrval       = FLAGS.learning_rate_start
     start_time  = time.time()
     done  = False
@@ -164,7 +162,8 @@ def train_model(train_data, num_sample_train, num_sample_test):
         batch += 1
         gene_ls_loss = gene_dc_loss = gene_loss = disc_real_loss = disc_fake_loss = -1.234
 
-        # First train based on MSE and then GAN TODO
+        # First train based on MSE and then GAN
+        # TODO: choose annealing or no annealing (original authors used annealing)
         if FLAGS.gene_mse_factor >= 1.0:
             gmf = 1.0
         else:

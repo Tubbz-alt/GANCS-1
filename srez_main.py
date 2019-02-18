@@ -517,7 +517,8 @@ def _train():
     train_filenames_input = filenames_input_train[:sample_train]    
     train_filenames_output = filenames_output_train[:sample_train]
 
-    # TODO If separate folders, index `:sample_test`. Currently hacked for same-folder split.
+    # TODO If separate folders, make the index `:sample_test`
+    # Using index `-sample_test:` hacks it for a same-folder split.
     test_filenames_input  = filenames_input_test[-sample_test:]  # filenames_input_test[:sample_test]
     test_filenames_output  = filenames_output_test[-sample_test:]  # filenames_output_test[:sample_test]
     #print('test_filenames_input', test_filenames_input)
