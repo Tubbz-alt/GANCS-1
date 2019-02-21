@@ -207,16 +207,20 @@ class Model:
         # Add projection in series if needed prior to shortcut
         if num_units != int(self.get_output().get_shape()[3]):
             self.add_conv2d(num_units, mapsize=1, stride=1, stddev_factor=1.)
+            self.add_batch_norm()
+            self.add_relu()
 
         bypass = self.get_output()
 
         # Residual block
-        for _ in range(num_layers):
-            self.add_batch_norm()
-            self.add_relu()
+        for i in range(num_layers):
             self.add_conv2d(num_units, mapsize=mapsize, stride=1, stddev_factor=stddev_factor)
+            self.add_batch_norm()
+            if i < num_layers - 1:
+                self.add_relu()
 
         self.add_sum(bypass)
+        self.add_relu()
 
         return self
 
@@ -621,7 +625,7 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
     for ru in range(len(res_units)-1):
         nunits  = res_units[ru]
 
-        for j in range(2):
+        for j in range(1):
             model.add_residual_block(nunits, mapsize=mapsize)
 
         # Spatial upscale (see http://distill.pub/2016/deconv-checkerboard/)
@@ -629,14 +633,14 @@ def _generator_model_with_scale(sess, features, labels, masks, channels, layer_o
         if scale_changes[ru]>0:
             model.add_upscale()
 
-        model.add_batch_norm()
-        model.add_relu()
-        model.add_conv2d_transpose(nunits, mapsize=mapsize, stride=1, stddev_factor=1.)
+        # model.add_batch_norm()
+        # model.add_relu()
+        # model.add_conv2d_transpose(nunits, mapsize=mapsize, stride=1, stddev_factor=1.)
 
 
     # Finalization a la "all convolutional net"
     nunits = res_units[-1]
-    model.add_conv2d(nunits, mapsize=mapsize, stride=1, stddev_factor=2.)
+    model.add_conv2d(nunits, mapsize=1, stride=1, stddev_factor=2.)
     # Worse: model.add_batch_norm()
     model.add_relu()
 
