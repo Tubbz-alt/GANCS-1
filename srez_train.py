@@ -222,7 +222,7 @@ def train_model(train_data, num_sample_train, num_sample_test):
         # export test batches
         if batch % summary_period == 0:
             # loop different test batch
-            for index_batch_test in range(int(num_batch_test)):
+            for index_batch_test in range(0, int(num_batch_test), 10):
                 # get test feature
                 test_feature = list_test_features[index_batch_test]
                 test_label = list_test_labels[index_batch_test]
