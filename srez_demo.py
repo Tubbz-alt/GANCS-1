@@ -96,6 +96,8 @@ def demo2(data, num_sample):
         # Visual
         if FLAGS.summary_period > 0 and index_batch % FLAGS.summary_period == 0:
             print('Saving comparison figure')
+            idx = FLAGS.batch_size*index_batch
+            print(d.test_filenames_input[idx:idx+FLAGS.batch_size])
             save_image_output(d, feature, label, gene_output, 
                 index_batch, 'test{:04d}'.format(index_batch), batch_size)
 
