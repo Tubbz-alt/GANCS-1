@@ -100,10 +100,9 @@ def demo2(data, num_sample):
         print('SNR: {}'.format(snr))
         print('PSNR: {}'.format(psnr))
         print('SSIM: {}'.format(ssim))
-        test_stats.append([index_batch, l1_error[0], l2_error[0], snr[0], 
-                           psnr[0], ssim[0], slice_time])
-        test_stats.append([index_batch, l1_error[1], l2_error[1], snr[1], 
-                           psnr[1], ssim[1], slice_time])
+        for b in range(FLAGS.batch_size):
+            test_stats.append([index_batch, l1_error[b], l2_error[b], snr[b], 
+                            psnr[b], ssim[b], slice_time])
 
         # Visual
         if FLAGS.summary_period > 0 and index_batch % FLAGS.summary_period == 0:
