@@ -47,7 +47,7 @@ def demo2(data, num_sample):
         list_labels.append(label)
     print('Prepared {} feature batches'.format(num_batch))
 
-    test_header = ['Batch', 'MAE', 'RMSE', 'SNR', 'SSIM', 'Time']
+    test_header = ['Batch', 'MAE', 'RMSE', 'SNR', 'PSNR', 'SSIM', 'Time']
     test_stats = []
 
     for index_batch in range(int(num_batch)):
@@ -88,14 +88,16 @@ def demo2(data, num_sample):
         mse = tf.reduce_mean(tf.square(error))
         l2_error = tf.sqrt(mse)
         snr = 10.0 * tf.log(tf.reduce_mean(tf.square(label)) / mse) / tf.log(10.0)
+        psnr = 10.0 * tf.log(1.0 / mse) / tf.log(10.0)
         ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)  # convert loss to actual metric
         l1_error, l2_error, snr, ssim = d.sess.run([l1_error, l2_error, snr, ssim])
         print('Slice time: {}s'.format(slice_time))
         print('L1 error: {}'.format(l1_error))
         print('L2 error: {}'.format(l2_error))
         print('SNR: {}'.format(snr))
+        print('PSNR: {}'.format(psnr))
         print('SSIM: {}'.format(ssim))
-        test_stats.append([index_batch, l1_error, l2_error, snr, ssim, slice_time])
+        test_stats.append([index_batch, l1_error, l2_error, snr, psnr, ssim, slice_time])
 
         # Visual
         if FLAGS.summary_period > 0 and index_batch % FLAGS.summary_period == 0:
