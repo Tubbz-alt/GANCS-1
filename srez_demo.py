@@ -1,3 +1,4 @@
+from __future__ import absolute_import, division, print_function
 from srez_model import loss_DSSIS_tf11
 from srez_train import _save_stats
 # import moviepy.editor as mpe
@@ -55,8 +56,10 @@ def demo2(data, num_sample):
         feature = list_features[index_batch]
         label = list_labels[index_batch]
 
-        print(feature.mean(), feature.var(), feature.max(), feature.min())
-        print(label.mean(), label.var(), label.max(), label.min())
+        print("Feature: mean {}, std {}, min {}, max {}".format(
+            feature.mean(), feature.std(), feature.max(), feature.min()))
+        print("Label:   mean {}, std {}, min {}, max {}".format(
+            label.mean(), label.std(), label.max(), label.min()))
     
         # Show progress with features
         feed_dict = {d.gene_minput: feature}     
@@ -70,28 +73,29 @@ def demo2(data, num_sample):
         # ops=[dum]
 
         # Run
-        forward_passing_time = time.time()
         # gene_output, gene_layers, disc_layers, disc_output, disc_gradients = d.sess.run(ops, feed_dict=feed_dict)
+        forward_passing_time = time.time()
         gene_output, = d.sess.run(ops, feed_dict=feed_dict)
+        inference_time = time.time() - forward_passing_time
         # gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = d.sess.run(ops, feed_dict=feed_dict)   
         
         # Stats
-        inference_time = time.time() - forward_passing_time
         slice_time = inference_time / batch_size
-        # gene_output = (gene_output - tf.reduce_min(gene_output)) / (tf.reduce_max(gene_output) - tf.reduce_min(gene_output))
-        gene_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
+        # gene_output = normalise(gene_output)
+        # gene_output = clip(gene_output)
         error = gene_output - label
         l1_error = tf.reduce_mean(tf.abs(error))
-        l2_error = tf.sqrt(tf.reduce_mean(tf.square(error)))
-        snr = 10.0 * tf.log(tf.reduce_mean(label**2) / l2_error**2) / tf.log(10.0)
-        ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)
+        mse = tf.reduce_mean(tf.square(error))
+        l2_error = tf.sqrt(mse)
+        snr = 10.0 * tf.log(tf.reduce_mean(tf.square(label)) / mse) / tf.log(10.0)
+        ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)  # convert loss to actual metric
         l1_error, l2_error, snr, ssim = d.sess.run([l1_error, l2_error, snr, ssim])
         print('Slice time: {}s'.format(slice_time))
         print('L1 error: {}'.format(l1_error))
         print('L2 error: {}'.format(l2_error))
         print('SNR: {}'.format(snr))
         print('SSIM: {}'.format(ssim))
-        test_stats.append([index_batch, l1_error, l2_error, snr, ssim, inference_time])
+        test_stats.append([index_batch, l1_error, l2_error, snr, ssim, slice_time])
 
         # Visual
         if FLAGS.summary_period > 0 and index_batch % FLAGS.summary_period == 0:
@@ -106,6 +110,14 @@ def demo2(data, num_sample):
     print('Demo complete.')
 
 
+def normalise(a):
+    return (a - tf.reduce_min(a)) / (tf.reduce_max(a) - tf.reduce_min(a))
+
+
+def clip(a):
+    return tf.maximum(tf.minimum(a, 1.0), 0.0)
+
+
 def save_image_output(data, feature, label, gene_output, 
         batch, suffix, max_samples=8):
     d = data
@@ -113,22 +125,24 @@ def save_image_output(data, feature, label, gene_output,
     size = [label.shape[1], label.shape[2]]
 
     # complex input zpad into r and channel
-    complex_zpad = (feature - feature.min()) / (feature.max() - feature.min())
-    complex_zpad = tf.image.resize_nearest_neighbor(feature, size)
-    complex_zpad = tf.maximum(tf.minimum(complex_zpad, 1.0), 0.0)
+    complex_zpad = feature
+    # complex_zpad = tf.image.resize_nearest_neighbor(feature, size)
+    # complex_zpad = clip(complex_zpad)
 
     # zpad magnitude
-    mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2+complex_zpad[:,:,:,1]**2)/tf.sqrt(2.0)
-    # mag_zpad = tf.maximum(tf.minimum(mag_zpad, 1.0), 0.0)
+    mag_zpad = tf.sqrt(complex_zpad[:,:,:,0]**2+complex_zpad[:,:,:,1]**2)
+    mag_zpad = normalise(mag_zpad)
+    mag_zpad = clip(mag_zpad)
     mag_zpad = tf.reshape(mag_zpad, [FLAGS.batch_size, size[0], size[1]])
     # mag_zpad = tf.concat(axis=3, values=[mag_zpad, mag_zpad])
     
     # output magnitude 
-    mag_output = tf.maximum(tf.minimum(gene_output, 1.0), 0.0)
+    mag_output = normalise(gene_output)
+    mag_output = clip(mag_output)
     mag_output = tf.reshape(mag_output, [FLAGS.batch_size, size[0], size[1]])
     # mag_output = tf.concat(axis=3, values=[mag_output, mag_output])
 
-    mag_gt = tf.maximum(tf.minimum(label, 1.0), 0.0)
+    mag_gt = clip(label)
     mag_gt = tf.reshape(mag_gt, [FLAGS.batch_size, size[0], size[1]])
     # mag_gt = tf.concat(axis=3, values=[label, label])
 
