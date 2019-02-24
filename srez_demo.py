@@ -89,7 +89,8 @@ def demo2(data, num_sample):
         l2_error = tf.sqrt(mse)
         snr = 10.0 * tf.log(tf.reduce_mean(tf.square(label)) / mse) / tf.log(10.0)
         psnr = 10.0 * tf.log(1.0 / mse) / tf.log(10.0)
-        ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)  # convert loss to actual metric
+        # ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)  # convert loss to actual metric
+        ssim = tf.image.ssim(label, gene_output, max_val=1.0)
         l1_error, l2_error, snr, psnr, ssim = d.sess.run([l1_error, l2_error, snr, psnr, ssim])
         print('Slice time: {}s'.format(slice_time))
         print('L1 error: {}'.format(l1_error))
