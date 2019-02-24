@@ -80,14 +80,16 @@ def demo2(data, num_sample):
         # gene_loss, gene_ls_loss, gene_dc_loss, disc_real_loss, disc_fake_loss, list_gene_losses = d.sess.run(ops, feed_dict=feed_dict)   
         
         # Stats
-        slice_time = inference_time / batch_size
+        label = tf.convert_to_tensor(label)
+        gene_output = tf.convert_to_tensor(gene_output)
         # gene_output = normalise(gene_output)
         # gene_output = clip(gene_output)
+        slice_time = inference_time / batch_size
         error = gene_output - label
-        l1_error = tf.reduce_mean(tf.abs(error))
-        mse = tf.reduce_mean(tf.square(error))
+        l1_error = tf.reduce_mean(tf.abs(error), axis=(1, 2, 3))
+        mse = tf.reduce_mean(tf.square(error), axis=(1, 2, 3))
         l2_error = tf.sqrt(mse)
-        snr = 10.0 * tf.log(tf.reduce_mean(tf.square(label)) / mse) / tf.log(10.0)
+        snr = 10.0 * tf.log(tf.reduce_mean(tf.square(label), axis=(1, 2, 3)) / mse) / tf.log(10.0)
         psnr = 10.0 * tf.log(1.0 / mse) / tf.log(10.0)
         # ssim = 1.0 - 2.0 * loss_DSSIS_tf11(label, gene_output)  # convert loss to actual metric
         ssim = tf.image.ssim(label, gene_output, max_val=1.0)
@@ -98,7 +100,10 @@ def demo2(data, num_sample):
         print('SNR: {}'.format(snr))
         print('PSNR: {}'.format(psnr))
         print('SSIM: {}'.format(ssim))
-        test_stats.append([index_batch, l1_error, l2_error, snr, psnr, ssim, slice_time])
+        test_stats.append([index_batch, l1_error[0], l2_error[0], snr[0], 
+                           psnr[0], ssim[0], slice_time])
+        test_stats.append([index_batch, l1_error[1], l2_error[1], snr[1], 
+                           psnr[1], ssim[1], slice_time])
 
         # Visual
         if FLAGS.summary_period > 0 and index_batch % FLAGS.summary_period == 0:
