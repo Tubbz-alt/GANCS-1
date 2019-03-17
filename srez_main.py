@@ -69,6 +69,7 @@ import srez_demo
 import srez_input
 import srez_model
 import srez_train
+from files import test_files
 
 import os.path
 import random
@@ -168,6 +169,9 @@ tf.app.flags.DEFINE_bool('permutation_train', True,
 
 tf.app.flags.DEFINE_bool('permutation_test', False,
                          "Whether to randomly permutate order for testing sub-samples.")
+
+tf.app.flags.DEFINE_bool('preset_files', False,
+                         "Whether to use the preset list of files in files.py")
 
 tf.app.flags.DEFINE_integer('random_seed', 0,
                             "Seed used to initialize rng.")
@@ -348,6 +352,14 @@ def save_parameters(use_flags=True, existing=None, **kwargs):
     print("Saved {}".format(parameters_fname))
     return parameters
 
+def prepare_preset_files(path, files, shuffle=False):
+    filenames = []
+    for i in range(len(files)):
+        for j in range(len(files[i])):
+            filenames.append(os.path.join(path, str(i), files[i][j]))
+    if shuffle: random.shuffle(filenames)
+    return filenames
+
 
 def _demo2():
     time_start = time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -363,8 +375,12 @@ def _demo2():
     sess, summary_writer = setup_tensorflow()
 
     # data directories
-    test_filenames_input = get_filenames(dir_file=FLAGS.dataset, shuffle_filename=False)
-    test_filenames_output = get_filenames(dir_file=FLAGS.dataset, shuffle_filename=False)
+    if FLAGS.preset_files:
+        test_filenames_input = prepare_preset_files(FLAGS.dataset, test_files, shuffle=False)
+        test_filenames_output = prepare_preset_files(FLAGS.dataset, test_files, shuffle=False)
+    else:
+        test_filenames_input = get_filenames(dir_file=FLAGS.dataset, shuffle_filename=False)
+        test_filenames_output = get_filenames(dir_file=FLAGS.dataset, shuffle_filename=False)
 
     if FLAGS.subsample_test > 0:
         index_sample_test_selected = random.sample(range(len(test_filenames_input)), FLAGS.subsample_test)
