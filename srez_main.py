@@ -361,7 +361,7 @@ def prepare_preset_files(path, files, shuffle=False):
     return filenames
 
 
-def _demo2():
+def _demo2(demo_func=srez_demo.demo2):
     time_start = time.strftime("%Y-%m-%d-%H-%M-%S")
     print("START. Time is {}".format(time_start))
     mkdirp(FLAGS.train_dir)
@@ -431,8 +431,13 @@ def _demo2():
 
     # Execute demo
     test_data = TrainData(locals())
-    num_sample = FLAGS.sample_test if FLAGS.sample_test > 0 else FLAGS.batch_size
-    srez_demo.demo2(test_data, num_sample)
+    if FLAGS.subsample_test > 0:
+        num_sample = FLAGS.subsample_test
+    elif FLAGS.sample_test > 0:
+        num_sample = FLAGS.sample_test
+    else:
+        num_sample = FLAGS.batch_size
+    demo_func(test_data, num_sample)
 
     time_ended = time.strftime("%Y-%m-%d-%H-%M-%S")
     print("ENDED. Time is {}".format(time_ended))
@@ -652,6 +657,8 @@ def main(argv=None):
     # Training or showing off?
     if FLAGS.run == 'demo':
         _demo2()
+    elif FLAGS.run == 'presentation':
+        _demo2(demo_func=srez_demo.demo3)
     elif FLAGS.run == 'train':
         _train()
 
