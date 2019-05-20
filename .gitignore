@@ -12,6 +12,7 @@
 .vscode/
 train*/
 test*/
+demo*/
 checkpoint*/
 sample*/
 
